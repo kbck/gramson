@@ -80,6 +80,22 @@ It includes manifests for extending core and defining an independent language,
 a custom operator, equivalent JSON/YAML expressions, and an invalid example.
 Generated files go under the ignored `build/` directory.
 
+The [bitwise extension](examples/bitwise/README.md) adds `&`, `|`, `^`, `~`, `<<`,
+and `>>` alongside core. Its reusable declarations live in
+[`spec/extensions/bitwise.yaml`](spec/extensions/bitwise.yaml) and are bundled
+with the installed package. Run the example with `make example-bitwise`, or
+select the extension in your own manifest:
+
+```yaml
+include:
+  - gramson:core
+  - gramson:bitwise
+```
+
+You can also add `operatorDirectories` to combine bundled extensions with your
+own declarations. Including only `gramson:bitwise` selects its six operators
+alongside the standard literals and arrays, without core.
+
 Generate the bundled core language into a self-contained directory:
 
 ```sh
@@ -89,7 +105,8 @@ gramson generate --output-directory generated
 To extend it in your own project, create `my-language/language.yaml`:
 
 ```yaml
-extends: gramson:core
+include:
+  - gramson:core
 operatorDirectories:
   - custom
 ```
@@ -120,12 +137,12 @@ Move or distribute the whole output directory together; validation uses its
 local files without consulting the installed core language or making network
 requests. Without `--schema`, validation still uses the bundled core grammar.
 
-A manifest without `extends` defines an independent language using only its
-selected directories. `extends: gramson:core` can also be used alone to generate
-only core. Core inheritance uses the installed Gramson version, so pin that
-version alongside your manifest for reproducible builds. Duplicate operator keys
-or definition names are errors; `core/` is reserved for bundled groups when
-extending core. Declarations define syntax, not evaluation behavior.
+A manifest without `include` defines a language using only its selected local
+directories. `include: [gramson:core]` selects just core. Bundled declarations use
+the installed Gramson version, so pin that version alongside your manifest for
+reproducible builds. Include order gives no precedence: duplicate operator keys,
+definition names, or output paths fail generation before schemas are written.
+Declarations define syntax, not evaluation behavior.
 
 ## Scope and decisions
 
@@ -162,6 +179,8 @@ operator calls.
 - `spec/core/*.yaml`: operator syntax, arities, names, titles, and summaries,
   grouped into data, logic, comparison, arithmetic, collection, string, and debugging.
   Longer descriptions are optional.
+- `spec/extensions/*.yaml`: reusable optional extensions, selected explicitly by
+  manifests through `include` (currently `gramson:bitwise`).
 - `gramson/generation.py`: loads and composes specifications and generates schemas.
 - `tools/generate_schema.py`: repository generation entry point used by `make generate`.
 - `gramson/cli.py`: generates grammars and validates JSON or YAML expressions.
@@ -224,6 +243,7 @@ Run `make` or `make help` to list targets:
 | `setup` | Create `.venv` and install the CLI and development dependencies. |
 | `generate` | Generate the expression, shared, and operator JSON Schemas. |
 | `example` | Generate and validate the included core extension example. |
+| `example-bitwise` | Generate and validate the bitwise extension example. |
 | `lint` / `lint-openapi` | Validate the hand-written OpenAPI document and external references with [openapi-spec-validator](https://openapi-spec-validator.readthedocs.io/en/stable/cli.html). |
 | `test` | Run all tests, including schema validation and generation freshness. |
 | `check` | Run lint and tests without rewriting generated files. |

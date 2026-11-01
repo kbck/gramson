@@ -54,8 +54,8 @@ class CLITests(unittest.TestCase):
                         self.assertEqual(status, expected, stderr)
 
     def test_custom_language_output_is_portable_and_self_contained(self):
-        for extends_core in (False, True):
-            with self.subTest(extends_core=extends_core), TemporaryDirectory() as portable:
+        for include_core in (False, True):
+            with self.subTest(include_core=include_core), TemporaryDirectory() as portable:
                 relocated = Path(portable) / "language #1"
                 with TemporaryDirectory() as temporary:
                     source = Path(temporary)
@@ -65,7 +65,7 @@ class CLITests(unittest.TestCase):
                     )
                     manifest = source / "language.yaml"
                     manifest.write_text(
-                        ("extends: gramson:core\n" if extends_core else "")
+                        ("include: [gramson:core]\n" if include_core else "")
                         + "operatorDirectories: [custom]\n"
                     )
                     output = source / "generated"
@@ -81,8 +81,8 @@ class CLITests(unittest.TestCase):
                     for expression, expected in (
                         ({"wrap": [1]}, 0),
                         ({"wrap": [1, 2]}, 1),
-                        ({"wrap": [{"+": [1, {"wrap": [2]}]}]}, 0 if extends_core else 1),
-                        ({"+": [{"wrap": [1]}, 2]}, 0 if extends_core else 1),
+                        ({"wrap": [{"+": [1, {"wrap": [2]}]}]}, 0 if include_core else 1),
+                        ({"+": [{"wrap": [1]}, 2]}, 0 if include_core else 1),
                     ):
                         with self.subTest(expression=expression):
                             status, _, stderr = self.invoke(json.dumps(expression), "--schema", schema)
@@ -97,7 +97,7 @@ class CLITests(unittest.TestCase):
                 "'+':\n  schemaName: anotherAddition\n  argumentKind: expression\n  minArgs: 1\n"
             )
             manifest = directory / "language.yaml"
-            manifest.write_text("extends: gramson:core\noperatorDirectories: [custom]\n")
+            manifest.write_text("include: [gramson:core]\noperatorDirectories: [custom]\n")
             output = directory / "output"
             output.mkdir()
             sentinel = output / "expression.schema.yaml"

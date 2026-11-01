@@ -49,13 +49,27 @@ The [ready-to-run extension example](https://github.com/kbck/gramson/tree/main/e
 contains manifests, a custom operator, JSON/YAML expressions, and instructions.
 It is also included in the source distribution; run `make setup` and `make example`
 from its repository or source-distribution root.
+The [bitwise extension](https://github.com/kbck/gramson/tree/main/examples/bitwise)
+adds `&`, `|`, `^`, `~`, `<<`, and `>>`; run it with `make example-bitwise`.
+Its reusable declarations are bundled in Gramson and can be selected directly:
+
+```yaml
+include:
+  - gramson:core
+  - gramson:bitwise
+```
+
+No declaration copying is needed. Add `operatorDirectories` for local groups,
+or include only `gramson:bitwise` to select it without core. Duplicate includes,
+unknown names, and operator, definition-name, or output-path collisions are errors.
 
 `gramson generate --output-directory generated` writes the bundled core grammar
 as a self-contained directory. For a custom language, create a manifest:
 
 ```yaml
 # my-language/language.yaml
-extends: gramson:core
+include:
+  - gramson:core
 operatorDirectories:
   - custom
 ```
@@ -82,10 +96,10 @@ expression entry point; operators can nest across groups. Keep the output
 directory together when moving it. Validation against `--schema` uses those
 files offline and does not depend on the installed core language.
 
-Without `extends`, a manifest defines an independent language using only its
-selected operator directories. `extends: gramson:core` alone selects just core.
-Duplicate operator keys or definition names are errors, and `core/` is reserved
-for inherited groups. Pin the Gramson version for reproducible core inheritance.
+Without `include`, a manifest selects only local directories.
+`include: [gramson:core]` alone selects just core. Include order does not give
+precedence: duplicate operator keys, definition names, or output paths fail the
+whole generation. Pin the Gramson version for reproducible bundled declarations.
 Custom declarations define syntax; they do not implement evaluation.
 
 ## Compatibility and contents
@@ -98,7 +112,7 @@ runtime equivalence is not tested.
 
 The wheel includes the generated schemas under `gramson.schemas`, preserving
 relative references for offline use. They can be accessed with
-`importlib.resources.files("gramson.schemas")`. Core declarations are bundled
+`importlib.resources.files("gramson.schemas")`. Core and optional extension declarations are bundled
 under `gramson.specs`, and the generator is included in the installed package.
 The source distribution also contains tests and user documentation.
 

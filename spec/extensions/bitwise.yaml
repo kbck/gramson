@@ -1,0 +1,43 @@
+'&':
+  schemaName: bitwiseAnd
+  title: Bitwise AND
+  summary: Describe a bitwise AND operation on two expressions.
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+'|':
+  schemaName: bitwiseOr
+  title: Bitwise OR
+  summary: Describe a bitwise OR operation on two expressions.
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+'^':
+  schemaName: bitwiseXor
+  title: Bitwise XOR
+  summary: Describe a bitwise exclusive OR operation on two expressions.
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+'~':
+  schemaName: bitwiseNot
+  title: Bitwise NOT
+  summary: Describe a bitwise complement operation on one expression.
+  argumentKind: expression
+  minArgs: 1
+  maxArgs: 1
+  shorthand: true
+'<<':
+  schemaName: bitwiseLeftShift
+  title: Bitwise left shift
+  summary: Describe a left shift of an expression by a shift-count expression.
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+'>>':
+  schemaName: bitwiseRightShift
+  title: Bitwise right shift
+  summary: Describe a right shift of an expression by a shift-count expression.
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2

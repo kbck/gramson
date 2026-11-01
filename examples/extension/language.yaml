@@ -1,3 +1,4 @@
-extends: gramson:core
+include:
+  - gramson:core
 operatorDirectories:
   - custom

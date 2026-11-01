@@ -25,23 +25,45 @@ specification, and malformed manifests are errors.
 Installed Gramson also supports extending its bundled core declarations:
 
 ```yaml
-extends: gramson:core
+include:
+  - gramson:core
 operatorDirectories:
   - custom
 ```
 
-`extends` accepts only `gramson:core`. Its declarations are loaded from the
-installed package, combined with the selected local files, and compiled into
-one grammar. `operatorDirectories` may be omitted or empty when extending core;
-otherwise it must be a nonempty list. Without `extends`, only local directories
-are included. The repository's own manifest uses local `core` files so edits to
-those declarations are reflected by `make generate`.
+`include` is a list of unique bundled definition names. These declarations are
+loaded from the installed package, combined with selected local files, and
+compiled into one grammar. `operatorDirectories` may be omitted or empty when
+`include` selects a bundled group; otherwise it must be a nonempty list.
+Omitting `include`, or supplying an empty list, selects only local directories.
+The repository's own manifest uses local `core` files so edits to those
+declarations are reflected by `make generate`.
 
-Bundled groups are emitted under `core/`; local source directories named `core`
-(including case variants) are reserved when extending core. Use a directory
-such as `custom` instead. Duplicate keys and `schemaName` values remain errors
-across core and local groups, with both source paths reported. Pin the Gramson
-package version to fix the inherited core definitions for reproducible builds.
+Select reusable optional extensions by name:
+
+```yaml
+include:
+  - gramson:core
+  - gramson:bitwise
+```
+
+The supported names are `gramson:core` and `gramson:bitwise`. The latter
+selects `spec/extensions/bitwise.yaml` from the installed
+package and emits `extensions/bitwise.schema.yaml`. Unknown names, repeated
+selections, duplicate operator keys or definition names, and output-path
+collisions with local groups are errors. Local and bundled output paths are
+compared without case distinctions for portability.
+
+`operatorDirectories` can be added to compose local groups with these bundled
+declarations. Include only `gramson:bitwise` to select it without core.
+Selecting local directories does not automatically enable any bundled group.
+
+Bundled core groups are emitted under `core/`, and bitwise under `extensions/`.
+Local files may share these directories when their output paths and definition
+names do not collide. There is no precedence or override behavior: duplicate
+operator keys, `schemaName` values, or output paths fail the whole generation
+before files are written. Include-list order does not change the generated
+grammar. Pin the Gramson package version for reproducible bundled definitions.
 
 Core is split into `data.yaml`, `logic.yaml`, `comparison.yaml`,
 `arithmetic.yaml`, `collection.yaml`, `string.yaml`, and `debugging.yaml`.

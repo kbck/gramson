@@ -76,13 +76,13 @@ class LanguageCompositionTests(unittest.TestCase):
         self.assertEqual(list(first), sorted(first))
         self.assertEqual(generate_schemas(first), generate_schemas(second))
 
-    def test_extends_core_composes_recursive_operands(self):
+    def test_included_core_composes_recursive_operands(self):
         self.write("custom/wrapping.yaml", {"wrap": {
             "schemaName": "wrapper", "argumentKind": "expression",
             "minArgs": 1, "maxArgs": 1,
         }})
         self.write("language.yaml", {
-            "extends": "gramson:core", "operatorDirectories": ["custom"],
+            "include": ["gramson:core"], "operatorDirectories": ["custom"],
         })
         groups = load_language(self.manifest)
         self.assertEqual(len(merge_operators(groups)), 36)
@@ -98,8 +98,8 @@ class LanguageCompositionTests(unittest.TestCase):
     def test_core_only_manifest_and_bundled_sources_match_repository(self):
         expected = load_language(ROOT / "spec" / "language.yaml")
         self.assertEqual(load_core(), expected)
-        for manifest in ({"extends": "gramson:core"}, {
-            "extends": "gramson:core", "operatorDirectories": [],
+        for manifest in ({"include": ["gramson:core"]}, {
+            "include": ["gramson:core"], "operatorDirectories": [],
         }):
             with self.subTest(manifest=manifest):
                 self.write("language.yaml", manifest)
@@ -115,7 +115,7 @@ class LanguageCompositionTests(unittest.TestCase):
                     "schemaName": schema_name, "argumentKind": "expression", "minArgs": 1,
                 }})
                 self.write("language.yaml", {
-                    "extends": "gramson:core", "operatorDirectories": ["custom"],
+                    "include": ["gramson:core"], "operatorDirectories": ["custom"],
                 })
                 with self.assertRaises(ValueError) as raised:
                     load_language(self.manifest)
@@ -123,16 +123,86 @@ class LanguageCompositionTests(unittest.TestCase):
                 self.assertIn("core/arithmetic.yaml", str(raised.exception))
                 self.assertIn("custom/wrapping.yaml", str(raised.exception))
 
-    def test_core_output_namespace_is_reserved_only_when_extending(self):
+    def test_local_core_directory_can_compose_with_bundled_core(self):
+        self.write("core/math.yaml", {"plus": {
+            "schemaName": "customPlus", "argumentKind": "expression", "minArgs": 2,
+        }})
         self.write("language.yaml", {
-            "extends": "gramson:core", "operatorDirectories": ["core"],
+            "include": ["gramson:core"], "operatorDirectories": ["core"],
         })
-        with self.assertRaisesRegex(ValueError, "core/ is reserved"):
-            load_language(self.manifest)
+        schemas = generate_schemas(load_language(self.manifest))
+        self.validator(schemas).validate({"plus": [{"+": [1, 2]}, 3]})
         self.write("language.yaml", {"operatorDirectories": ["core"]})
         operators = merge_operators(load_language(self.manifest))
         self.assertEqual(set(operators), {"plus"})
         self.assertFalse(self.validator(generate_schemas(load_language(self.manifest))).is_valid({"+": [1, 2]}))
+
+    def test_core_include_rejects_local_output_collisions(self):
+        self.write("core/arithmetic.yml", {"wrap": {
+            "argumentKind": "expression", "minArgs": 1,
+        }})
+        self.write("language.yaml", {
+            "include": ["gramson:core"], "operatorDirectories": ["core"],
+        })
+        with self.assertRaisesRegex(ValueError, "Output collision.*bundled core/arithmetic.yaml.*local core/arithmetic.yml"):
+            load_language(self.manifest)
+
+    def test_include_order_does_not_change_the_generated_language(self):
+        self.write("language.yaml", {"include": ["gramson:core", "gramson:bitwise"]})
+        first = load_language(self.manifest)
+        self.write("language.yaml", {"include": ["gramson:bitwise", "gramson:core"]})
+        second = load_language(self.manifest)
+        self.assertEqual(list(first), list(second))
+        self.assertEqual(generate_schemas(first), generate_schemas(second))
+
+    def test_bundled_extension_can_be_selected_without_core(self):
+        self.write("language.yaml", {"include": ["gramson:bitwise"]})
+        groups = load_language(self.manifest)
+        self.assertEqual(set(groups), {Path("extensions/bitwise.yaml")})
+        schemas = generate_schemas(groups)
+        validator = self.validator(schemas)
+        validator.validate({"&": [1, {"~": [2]}]})
+        self.assertFalse(validator.is_valid({"+": [1, 2]}))
+
+    def test_bundled_extension_composes_with_core_and_local_groups(self):
+        self.write("custom/wrap.yaml", {"wrap": {
+            "schemaName": "wrapper", "argumentKind": "expression", "minArgs": 1,
+        }})
+        self.write("language.yaml", {
+            "include": ["gramson:core", "gramson:bitwise"],
+            "operatorDirectories": ["custom"],
+        })
+        schemas = generate_schemas(load_language(self.manifest))
+        self.assertIn(Path("extensions/bitwise.schema.yaml"), schemas)
+        self.validator(schemas).validate({"+": [{"wrap": [{"&": [{"var": "mask"}, 3]}]}, 1]})
+
+    def test_bundled_extension_rejects_local_output_collisions(self):
+        self.write("extensions/bitwise.yml", {"wrap": {
+            "argumentKind": "expression", "minArgs": 1,
+        }})
+        self.write("language.yaml", {
+            "include": ["gramson:bitwise"], "operatorDirectories": ["extensions"],
+        })
+        with self.assertRaisesRegex(ValueError, "Output collision.*bundled extensions/bitwise.yaml.*local extensions/bitwise.yml"):
+            load_language(self.manifest)
+
+    def test_bundled_extension_rejects_operator_and_definition_collisions(self):
+        for name, schema_name, diagnostic in (
+            ("&", "anotherBitwiseAnd", "Duplicate operator"),
+            ("wrap", "bitwiseAnd", "Duplicate schemaName"),
+        ):
+            with self.subTest(name=name):
+                self.write("custom/duplicate.yaml", {name: {
+                    "schemaName": schema_name, "argumentKind": "expression", "minArgs": 1,
+                }})
+                self.write("language.yaml", {
+                    "include": ["gramson:bitwise"], "operatorDirectories": ["custom"],
+                })
+                with self.assertRaises(ValueError) as raised:
+                    load_language(self.manifest)
+                self.assertIn(diagnostic, str(raised.exception))
+                self.assertIn("extensions/bitwise.yaml", str(raised.exception))
+                self.assertIn("custom/duplicate.yaml", str(raised.exception))
 
     def test_duplicate_operator_reports_both_sources(self):
         self.write("core/other.yaml", {"plus": {
@@ -167,10 +237,16 @@ class LanguageCompositionTests(unittest.TestCase):
             {"operatorDirectories": ["."]}, {"operatorDirectories": [str(self.directory)]},
             {"operatorDirectories": ["core", "core"]},
             {"operatorDirectories": ["core"], "typo": True},
-            {"extends": "unknown:core"}, {"extends": None},
-            {"extends": ["gramson:core"]},
-            {"extends": "gramson:core", "operatorDirectories": None},
-            {"extends": "gramson:core", "typo": True},
+            {"include": ["gramson:core"], "operatorDirectories": None},
+            {"include": ["gramson:core"], "typo": True},
+            {"include": "gramson:core"}, {"include": None},
+            {"include": []}, {"include": [None]},
+            {"include": [["gramson:bitwise"]]},
+            {"include": ["gramson:unknown"]}, {"include": ["../../bitwise"]},
+            {"include": ["gramson:core", "gramson:core"]},
+            {"include": ["gramson:bitwise", "gramson:bitwise"]},
+            {"extends": "gramson:core"}, {"extensions": ["gramson:bitwise"]},
+            {"include": ["gramson:core"], "extends": "gramson:core"},
         ]
         for manifest in manifests:
             with self.subTest(manifest=manifest):

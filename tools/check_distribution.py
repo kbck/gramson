@@ -138,11 +138,18 @@ runpy.run_module('gramson', run_name='__main__')
         (directory / "custom/wrap.yaml").write_text(
             "wrap:\n  schemaName: wrapper\n  argumentKind: expression\n  minArgs: 1\n  maxArgs: 1\n"
         )
-        (directory / "language.yaml").write_text("extends: gramson:core\noperatorDirectories: [custom]\n")
+        (directory / "language.yaml").write_text("include: [gramson:core]\noperatorDirectories: [custom]\n")
         run_cli(["generate", "--manifest", "language.yaml", "--output-directory", "extended-grammar"])
         (directory / "custom-expression.json").write_text('{"wrap":[{"+":[1,{"wrap":[2]}]}]}')
         run_cli(["validate", "custom-expression.json", "--schema", "extended-grammar/expression.schema.yaml"])
         run_cli(["validate", "custom-expression.json"], 1)
+        (directory / "bitwise-language.yaml").write_text(
+            "include: [gramson:core, gramson:bitwise]\n"
+        )
+        run_cli(["generate", "--manifest", "bitwise-language.yaml", "--output-directory", "bitwise-grammar"])
+        (directory / "bitwise-expression.json").write_text('{"&":[{"var":"mask"},{"~":[3]}]}')
+        run_cli(["validate", "bitwise-expression.json", "--schema", "bitwise-grammar/expression.schema.yaml"])
+        run_cli(["validate", "bitwise-expression.json"], 1)
     print(f"Verified {name} {version}: metadata, licenses, {len(schemas)} schemas, bundled declarations, source files, installed generation and validation.")
 
 

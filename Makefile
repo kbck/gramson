@@ -6,7 +6,7 @@ VENV_PYTHON := $(VENV)/bin/python
 HOST ?= 127.0.0.1
 PORT ?= 8765
 
-.PHONY: help setup setup-release generate example lint lint-openapi test check build check-dist serve
+.PHONY: help setup setup-release generate example example-bitwise lint lint-openapi test check build check-dist serve
 
 help: ## Show available targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -28,6 +28,11 @@ example: ## Generate and validate the ready-to-run core extension example
 	"$(VENV_PYTHON)" -m gramson generate --manifest examples/extension/language.yaml --output-directory build/examples/extension
 	"$(VENV_PYTHON)" -m gramson validate examples/extension/expressions/nested.yaml --schema build/examples/extension/expression.schema.yaml
 	"$(VENV_PYTHON)" -m gramson validate examples/extension/expressions/nested.json --schema build/examples/extension/expression.schema.yaml
+
+example-bitwise: ## Generate and validate the bitwise extension example
+	"$(VENV_PYTHON)" -m gramson generate --manifest examples/bitwise/language.yaml --output-directory build/examples/bitwise
+	"$(VENV_PYTHON)" -m gramson validate examples/bitwise/expressions/nested.yaml --schema build/examples/bitwise/expression.schema.yaml
+	"$(VENV_PYTHON)" -m gramson validate examples/bitwise/expressions/nested.json --schema build/examples/bitwise/expression.schema.yaml
 
 lint: lint-openapi ## Run specification linting
 

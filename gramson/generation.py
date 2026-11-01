@@ -6,6 +6,12 @@ from urllib.parse import quote
 import yaml
 
 
+BUNDLED_INCLUDES = {
+    "gramson:core": Path("core"),
+    "gramson:bitwise": Path("extensions/bitwise.yaml"),
+}
+
+
 def generate_schema(operators):
     if not isinstance(operators, dict) or not operators:
         raise ValueError("The registry must be a nonempty object.")
@@ -114,8 +120,8 @@ def read_yaml(path):
         return yaml.load(stream, Loader=UniqueKeyLoader)
 
 
-def load_core():
-    """Load the installed core declarations with portable output paths."""
+def _load_bundled(name):
+    """Load installed declarations with portable output paths."""
     groups = {}
 
     def read_directory(directory, relative):
@@ -126,10 +132,20 @@ def load_core():
             elif source.name.endswith((".yaml", ".yml")):
                 groups[name] = read_yaml(source)
 
-    read_directory(files("gramson.specs").joinpath("core"), Path("core"))
+    relative = BUNDLED_INCLUDES[name]
+    resource = files("gramson.specs").joinpath(*relative.parts)
+    if resource.is_dir():
+        read_directory(resource, relative)
+    else:
+        groups[relative] = read_yaml(resource)
     groups = dict(sorted(groups.items()))
     merge_operators(groups)
     return groups
+
+
+def load_core():
+    """Load the default bundled core language."""
+    return _load_bundled("gramson:core")
 
 
 def merge_operators(groups):
@@ -163,14 +179,23 @@ def merge_operators(groups):
 def load_language(manifest_path):
     manifest_path = Path(manifest_path).resolve()
     manifest = read_yaml(manifest_path)
-    if not isinstance(manifest, dict) or set(manifest) - {"operatorDirectories", "extends"}:
-        raise ValueError(f"{manifest_path}: expected operatorDirectories and optional extends.")
-    extends_core = "extends" in manifest
-    if extends_core and manifest["extends"] != "gramson:core":
-        raise ValueError(f"{manifest_path}: extends must be 'gramson:core'.")
+    if not isinstance(manifest, dict) or set(manifest) - {"operatorDirectories", "include"}:
+        raise ValueError(f"{manifest_path}: expected include and/or operatorDirectories.")
+    includes = manifest.get("include", [])
+    if not isinstance(includes, list):
+        raise ValueError(f"{manifest_path}: include must be a list of bundled definition names.")
+    groups = {}
+    selected = set()
+    for name in includes:
+        if not isinstance(name, str) or name not in BUNDLED_INCLUDES:
+            raise ValueError(f"{manifest_path}: unknown include {name!r}; expected one of {', '.join(BUNDLED_INCLUDES)}.")
+        if name in selected:
+            raise ValueError(f"{manifest_path}: repeated include {name!r}.")
+        selected.add(name)
+        groups.update(_load_bundled(name))
     directories = manifest.get("operatorDirectories", [])
-    if not isinstance(directories, list) or (not directories and not extends_core):
-        raise ValueError(f"{manifest_path}: operatorDirectories must be a nonempty list unless extending gramson:core.")
+    if not isinstance(directories, list) or (not directories and not groups):
+        raise ValueError(f"{manifest_path}: operatorDirectories must be a nonempty list unless include selects bundled definitions.")
     source_root = manifest_path.parent
     sources = set()
     seen_directories = set()
@@ -186,29 +211,27 @@ def load_language(manifest_path):
         if path in seen_directories:
             raise ValueError(f"{manifest_path}: repeated directory {directory!r}.")
         seen_directories.add(path)
-        files = sorted(
+        operator_files = sorted(
             source for source in path.rglob("*")
             if source.is_file() and source.suffix in (".yaml", ".yml")
         )
-        if not files:
+        if not operator_files:
             raise ValueError(f"{manifest_path}: no YAML operator files in {directory!r}.")
-        for source in files:
+        for source in operator_files:
             if not source.resolve().is_relative_to(source_root):
                 raise ValueError(f"{source}: operator files must stay inside the specification.")
             sources.add(source)
-    groups = {}
-    targets = {}
+    targets = {
+        relative.with_suffix(".schema.yaml").as_posix().casefold(): f"bundled {relative}"
+        for relative in groups
+    }
     for source in sorted(sources):
         relative = source.relative_to(source_root)
-        if extends_core and relative.parts[0].casefold() == "core":
-            raise ValueError(f"{relative}: core/ is reserved when extending gramson:core; use another source directory.")
-        target = relative.with_suffix(".schema.yaml")
+        target = relative.with_suffix(".schema.yaml").as_posix().casefold()
         if target in targets:
-            raise ValueError(f"Output collision between {targets[target]} and {relative}.")
+            raise ValueError(f"Output collision between {targets[target]} and local {relative}.")
         targets[target] = relative
         groups[relative] = read_yaml(source)
-    if extends_core:
-        groups = {**load_core(), **groups}
     groups = dict(sorted(groups.items()))
     merge_operators(groups)
     return groups

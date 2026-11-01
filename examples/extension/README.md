@@ -28,7 +28,7 @@ gramson validate examples/extension/expressions/nested.yaml --schema build/examp
 gramson validate examples/extension/expressions/nested.json --schema build/examples/extension/expression.schema.yaml
 ```
 
-`language.yaml` inherits `gramson:core` and selects the local `custom/` directory.
+`language.yaml` includes `gramson:core` and selects the local `custom/` directory.
 `custom/wrapping.yaml` defines `wrap` with exactly one recursive expression
 argument. The generated directory contains `core/`, `custom/`, shared
 definitions, and one expression entry point. You can move the whole directory
@@ -46,7 +46,7 @@ expressions because it does not define `wrap`.
 
 ## Use the same operator without core
 
-`standalone.yaml` selects the same custom declarations without `extends`:
+`standalone.yaml` selects the same custom declarations without `include`:
 
 ```sh
 gramson generate --manifest examples/extension/standalone.yaml --output-directory build/examples/standalone
@@ -59,4 +59,4 @@ must fail with code `1`, because core operators are absent.
 To adapt this example, copy this directory into your project, edit the custom
 declarations and expressions, and regenerate. Operator directories are relative
 to each manifest, so the example does not depend on the repository's `spec/`
-directory. Core inheritance uses the installed Gramson version.
+directory. Bundled core definitions come from the installed Gramson version.
