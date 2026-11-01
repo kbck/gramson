@@ -33,6 +33,8 @@ example-bitwise: ## Generate and validate the bitwise extension example
 	"$(VENV_PYTHON)" -m gramson generate --manifest examples/bitwise/language.yaml --output-directory build/examples/bitwise
 	"$(VENV_PYTHON)" -m gramson validate examples/bitwise/expressions/nested.yaml --schema build/examples/bitwise/expression.schema.yaml
 	"$(VENV_PYTHON)" -m gramson validate examples/bitwise/expressions/nested.json --schema build/examples/bitwise/expression.schema.yaml
+	"$(VENV_PYTHON)" -m gramson validate examples/bitwise/expressions/conversions.yaml --schema build/examples/bitwise/expression.schema.yaml
+	"$(VENV_PYTHON)" -m gramson validate examples/bitwise/expressions/conversions.json --schema build/examples/bitwise/expression.schema.yaml
 
 lint: lint-openapi ## Run specification linting
 

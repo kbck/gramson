@@ -41,3 +41,27 @@
   argumentKind: expression
   minArgs: 2
   maxArgs: 2
+hexToInt:
+  schemaName: hexToInt
+  title: Hexadecimal to integer
+  summary: Convert a hexadecimal string expression to an integer.
+  description: The intended input has ASCII hexadecimal digits, an optional 0x
+    or 0X prefix, and an optional leading minus sign. Whitespace, empty digit
+    sequences, and non-string inputs are not intended to be accepted. Validation
+    checks expression syntax only; evaluation and operand-type checks are not implemented.
+  argumentKind: expression
+  minArgs: 1
+  maxArgs: 1
+  shorthand: true
+intToHex:
+  schemaName: intToHex
+  title: Integer to hexadecimal
+  summary: Convert an integer expression to a canonical hexadecimal string.
+  description: The intended result uses lowercase digits and a 0x prefix, with
+    a leading minus sign for negative integers and no redundant leading zeros.
+    Strings, booleans, and floats are not implicitly coerced. Validation checks
+    expression syntax only; evaluation and operand-type checks are not implemented.
+  argumentKind: expression
+  minArgs: 1
+  maxArgs: 1
+  shorthand: true

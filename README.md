@@ -81,7 +81,8 @@ a custom operator, equivalent JSON/YAML expressions, and an invalid example.
 Generated files go under the ignored `build/` directory.
 
 The [bitwise extension](examples/bitwise/README.md) adds `&`, `|`, `^`, `~`, `<<`,
-and `>>` alongside core. Its reusable declarations live in
+and `>>`, plus `hexToInt` and `intToHex` conversions, alongside core. Its reusable
+declarations live in
 [`spec/extensions/bitwise.yaml`](spec/extensions/bitwise.yaml) and are bundled
 with the installed package. Run the example with `make example-bitwise`, or
 select the extension in your own manifest:
@@ -93,7 +94,7 @@ include:
 ```
 
 You can also add `operatorDirectories` to combine bundled extensions with your
-own declarations. Including only `gramson:bitwise` selects its six operators
+own declarations. Including only `gramson:bitwise` selects its eight operators
 alongside the standard literals and arrays, without core.
 
 Generate the bundled core language into a self-contained directory:

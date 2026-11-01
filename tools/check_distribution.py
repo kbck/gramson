@@ -147,7 +147,9 @@ runpy.run_module('gramson', run_name='__main__')
             "include: [gramson:core, gramson:bitwise]\n"
         )
         run_cli(["generate", "--manifest", "bitwise-language.yaml", "--output-directory", "bitwise-grammar"])
-        (directory / "bitwise-expression.json").write_text('{"&":[{"var":"mask"},{"~":[3]}]}')
+        (directory / "bitwise-expression.json").write_text(
+            '{"intToHex":[{"&":[{"hexToInt":["0xFF"]},{"var":"mask"}]}]}'
+        )
         run_cli(["validate", "bitwise-expression.json", "--schema", "bitwise-grammar/expression.schema.yaml"])
         run_cli(["validate", "bitwise-expression.json"], 1)
     print(f"Verified {name} {version}: metadata, licenses, {len(schemas)} schemas, bundled declarations, source files, installed generation and validation.")

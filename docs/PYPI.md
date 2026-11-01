@@ -50,7 +50,8 @@ contains manifests, a custom operator, JSON/YAML expressions, and instructions.
 It is also included in the source distribution; run `make setup` and `make example`
 from its repository or source-distribution root.
 The [bitwise extension](https://github.com/kbck/gramson/tree/main/examples/bitwise)
-adds `&`, `|`, `^`, `~`, `<<`, and `>>`; run it with `make example-bitwise`.
+adds `&`, `|`, `^`, `~`, `<<`, `>>`, `hexToInt`, and `intToHex`;
+run it with `make example-bitwise`.
 Its reusable declarations are bundled in Gramson and can be selected directly:
 
 ```yaml
