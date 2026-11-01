@@ -2,14 +2,19 @@
 
 **Define JSON expression languages in YAML. Generate JSON Schema to validate them.**
 
-Describe each operator's arguments in YAML, and Gramson turns those declarations
-into a grammar that checks JSON expressions, including nested ones. Combine
-operator groups from your own files, shared libraries, or the included JSON Logic
-profile to define your language.
+Gramson is a Python library and CLI that compiles operator declarations into
+recursive Draft 2020-12 JSON Schema grammars. Declare argument counts, shorthand,
+and recursive expression or string arguments, then combine bundled groups and
+your own libraries into one language.
 
-Gramson defines and validates syntax. It does not evaluate expressions.
+Gramson validates syntax; it does not evaluate expressions.
 
-## How it works
+## Why this project exists
+
+Keep operator definitions and syntax validation in sync: define the rules once
+and regenerate the schemas when your language changes.
+
+## Example
 
 Declare an operator that takes exactly one expression:
 
@@ -28,7 +33,6 @@ Combine it with the bundled core language, and the generated schema accepts:
 
 It rejects `{"wrap": [1, 2]}` because `wrap` takes one argument. Recursive
 references let your operators nest inside core operators, and vice versa.
-The output is standard Draft 2020-12 JSON Schema, usable with other validators.
 
 ## Try it
 
