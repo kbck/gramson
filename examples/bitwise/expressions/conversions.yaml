@@ -1,0 +1,5 @@
+intToHex:
+  - '&':
+      - hexToInt: ['0xFF']
+      - hexToInt:
+          var: maskHex

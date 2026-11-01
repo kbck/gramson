@@ -31,10 +31,10 @@ operatorDirectories:
   - custom
 ```
 
-`include` is a list of unique bundled definition names. These declarations are
-loaded from the installed package, combined with selected local files, and
+`include` is a list of unique `namespace:group` names. These declarations are
+loaded from the installed package or explicit search paths, combined with local files, and
 compiled into one grammar. `operatorDirectories` may be omitted or empty when
-`include` selects a bundled group; otherwise it must be a nonempty list.
+`include` selects a group; otherwise it must be a nonempty list.
 Omitting `include`, or supplying an empty list, selects only local directories.
 The repository's own manifest uses local `core` files so edits to those
 declarations are reflected by `make generate`.
@@ -47,7 +47,7 @@ include:
   - gramson:bitwise
 ```
 
-The supported names are `gramson:core` and `gramson:bitwise`. The latter
+The bundled names are `gramson:core` and `gramson:bitwise`. The latter
 selects `spec/extensions/bitwise.yaml` from the installed
 package and emits `extensions/bitwise.schema.yaml`. Unknown names, repeated
 selections, duplicate operator keys or definition names, and output-path
@@ -64,6 +64,48 @@ names do not collide. There is no precedence or override behavior: duplicate
 operator keys, `schemaName` values, or output paths fail the whole generation
 before files are written. Include-list order does not change the generated
 grammar. Pin the Gramson package version for reproducible bundled definitions.
+
+## External specification libraries
+
+Other namespaces resolve through user-supplied search roots:
+
+```yaml
+include:
+  - gramson:core
+  - mystuff:myops
+```
+
+```sh
+gramson generate --manifest language.yaml --spec-path ./vendor --spec-path ./shared-specs --output-directory generated
+```
+
+An external `mystuff:myops` group must be a directory at
+`<search-root>/mystuff/myops/`. Its `.yaml` and `.yml` operator files are loaded
+recursively, including nested directories. These files contain operator
+declarations, not language manifests. Namespace and group identifiers start
+with a lowercase ASCII letter, followed by lowercase letters, digits, `_`, or
+`-`. External groups are emitted under `mystuff/myops/` with their relative
+layout preserved.
+
+`--spec-path` is repeatable and requires `--manifest`. Search roots must exist;
+relative paths are resolved against the command's working directory. Repeating
+the same resolved root is harmless. A name found in multiple distinct roots is
+ambiguous and fails, even if the declarations match. Root order never selects
+a winner. Unknown names fail; no global discovery, downloads, or package imports
+are attempted. `gramson:` always resolves to this package and cannot be supplied
+or overridden by search roots.
+
+Group directories must stay inside their search root, and operator files must
+stay inside their selected group, including symlink targets. Namespace labels
+do not prefix operator keys: duplicate keys, definition names, and output paths
+remain errors across all sources. External libraries do not implicitly include
+core. Generated output needs neither the library nor search paths to validate.
+Version or vendor the external declarations alongside the application's build
+configuration for reproducible generation.
+
+The Python loader accepts the same roots as
+`load_language(manifest_path, spec_paths=[Path("vendor")])`. See the
+[runnable example](../examples/external/README.md).
 
 Core is split into `data.yaml`, `logic.yaml`, `comparison.yaml`,
 `arithmetic.yaml`, `collection.yaml`, `string.yaml`, and `debugging.yaml`.

@@ -89,6 +89,62 @@ class CLITests(unittest.TestCase):
                             self.assertEqual(status, expected, stderr)
                 self.assertEqual(self.invoke('{"wrap":[1]}')[0], 1)
 
+    def test_external_include_search_paths_and_portable_output(self):
+        example = Path(__file__).resolve().parents[1] / "examples" / "external"
+        with TemporaryDirectory() as portable:
+            relocated = Path(portable) / "schema"
+            with TemporaryDirectory() as temporary:
+                source = Path(temporary)
+                shutil.copytree(example / "vendor", source / "vendor")
+                shutil.copyfile(example / "language.yaml", source / "language.yaml")
+                (source / "empty-library").mkdir()
+                status, _, stderr = self.invoke_command([
+                    "generate", "--manifest", str(source / "language.yaml"),
+                    "--spec-path", str(source / "vendor"),
+                    "--spec-path", str(source / "empty-library"),
+                    "--output-directory", str(source / "generated"),
+                ])
+                self.assertEqual(status, 0, stderr)
+                shutil.copytree(source / "generated", relocated)
+            with patch("gramson.cli.files", side_effect=AssertionError("Unexpected package lookup")):
+                for filename, format_name, expected in (
+                    ("nested.json", "json", 0), ("nested.yaml", "yaml", 0),
+                    ("invalid-arity.yaml", "yaml", 1),
+                ):
+                    with self.subTest(filename=filename):
+                        contents = (example / "expressions" / filename).read_text()
+                        status, _, stderr = self.invoke(
+                            contents, "--format", format_name, "--schema", str(relocated / "expression.schema.yaml"),
+                        )
+                        self.assertEqual(status, expected, stderr)
+
+    def test_ambiguous_external_include_leaves_output_untouched(self):
+        with TemporaryDirectory() as temporary:
+            source = Path(temporary)
+            for name in ("first", "second"):
+                group = source / name / "mystuff" / "myops"
+                group.mkdir(parents=True)
+                (group / "ops.yaml").write_text("wrap:\n  argumentKind: expression\n  minArgs: 1\n")
+            manifest = source / "language.yaml"
+            manifest.write_text("include: [mystuff:myops]\n")
+            output = source / "generated"
+            output.mkdir()
+            sentinel = output / "expression.schema.yaml"
+            sentinel.write_text("unchanged")
+            status, stdout, stderr = self.invoke_command([
+                "generate", "--manifest", str(manifest), "--spec-path", str(source / "first"),
+                "--spec-path", str(source / "second"), "--output-directory", str(output),
+            ])
+            self.assertEqual(status, 2)
+            self.assertEqual(stdout, "")
+            self.assertIn("Ambiguous include", stderr)
+            self.assertEqual(sentinel.read_text(), "unchanged")
+
+    def test_search_paths_require_a_manifest(self):
+        status, _, stderr = self.invoke_command(["generate", "--spec-path", "."])
+        self.assertEqual(status, 2)
+        self.assertIn("--spec-path requires --manifest", stderr)
+
     def test_invalid_generation_preserves_existing_output(self):
         with TemporaryDirectory() as temporary:
             directory = Path(temporary)

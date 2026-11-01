@@ -140,6 +140,7 @@ def main(argv=None):
     commands = parser.add_subparsers(dest="command", required=True)
     generate = commands.add_parser("generate", help="Generate a self-contained expression grammar.")
     generate.add_argument("--manifest", type=Path, help="Language manifest; defaults to the bundled core language.")
+    generate.add_argument("--spec-path", type=Path, action="append", default=[], help="Search root for external namespace:group includes (repeatable).")
     generate.add_argument("--output-directory", type=Path, default=Path("schema"), help="Output directory (default: schema).")
     validate = commands.add_parser("validate", help="Validate one JSON or YAML expression.")
     validate.add_argument("expression", help="Expression file, or - to read stdin.")
@@ -148,7 +149,9 @@ def main(argv=None):
     options = parser.parse_args(argv)
     if options.command == "generate":
         try:
-            groups = load_core() if options.manifest is None else load_language(options.manifest)
+            if options.spec_path and options.manifest is None:
+                raise ValueError("--spec-path requires --manifest.")
+            groups = load_core() if options.manifest is None else load_language(options.manifest, spec_paths=options.spec_path)
             schemas = generate_schemas(groups)
             write_schemas(schemas, options.output_directory)
         except (OSError, UnicodeError, ValueError, yaml.YAMLError, RecursionError) as error:

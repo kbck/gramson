@@ -1,0 +1,7 @@
+wrap:
+  schemaName: wrapper
+  title: External wrapper
+  summary: Wrap one expression using an external specification library.
+  argumentKind: expression
+  minArgs: 1
+  maxArgs: 1

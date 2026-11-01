@@ -97,6 +97,29 @@ You can also add `operatorDirectories` to combine bundled extensions with your
 own declarations. Including only `gramson:bitwise` selects its eight operators
 alongside the standard literals and arrays, without core.
 
+For a user-owned specification library, use a namespace and a search root:
+
+```yaml
+include:
+  - gramson:core
+  - mystuff:myops
+```
+
+```sh
+gramson generate --manifest language.yaml --spec-path ./vendor --output-directory generated
+```
+
+This loads declarations recursively from `vendor/mystuff/myops/`. Repeat
+`--spec-path` for multiple libraries; relative paths are resolved from the
+command's working directory. `gramson:` is reserved for this package. Unknown
+includes and ambiguous matches across search roots fail generation; search-path
+order gives no precedence. Namespaces select sources without prefixing operator
+keys. Generated schemas remain self-contained, with external groups emitted
+under `mystuff/myops/`.
+
+Try the [ready-to-run external library example](examples/external/README.md)
+with `make example-external`.
+
 Generate the bundled core language into a self-contained directory:
 
 ```sh
@@ -245,6 +268,7 @@ Run `make` or `make help` to list targets:
 | `generate` | Generate the expression, shared, and operator JSON Schemas. |
 | `example` | Generate and validate the included core extension example. |
 | `example-bitwise` | Generate and validate the bitwise extension example. |
+| `example-external` | Generate and validate a user-owned namespace include. |
 | `lint` / `lint-openapi` | Validate the hand-written OpenAPI document and external references with [openapi-spec-validator](https://openapi-spec-validator.readthedocs.io/en/stable/cli.html). |
 | `test` | Run all tests, including schema validation and generation freshness. |
 | `check` | Run lint and tests without rewriting generated files. |

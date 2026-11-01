@@ -1,6 +1,7 @@
 from importlib.resources import files
 import posixpath
 from pathlib import Path
+import re
 from urllib.parse import quote
 
 import yaml
@@ -10,6 +11,7 @@ BUNDLED_INCLUDES = {
     "gramson:core": Path("core"),
     "gramson:bitwise": Path("extensions/bitwise.yaml"),
 }
+INCLUDE_NAME = re.compile(r"[a-z][a-z0-9_-]*:[a-z][a-z0-9_-]*")
 
 
 def generate_schema(operators):
@@ -148,6 +150,38 @@ def load_core():
     return _load_bundled("gramson:core")
 
 
+def _load_external(name, spec_paths):
+    namespace, group_name = name.split(":")
+    matches = []
+    for root in spec_paths:
+        candidate = root / namespace / group_name
+        if candidate.is_dir():
+            resolved = candidate.resolve()
+            if not resolved.is_relative_to(root):
+                raise ValueError(f"Include {name!r} escapes its spec search path: {candidate}.")
+            matches.append(resolved)
+    if not matches:
+        searched = ", ".join(str(root / namespace / group_name) for root in spec_paths)
+        hint = f"searched {searched}" if searched else "provide --spec-path to search for external specifications"
+        raise ValueError(f"Unknown include {name!r}; {hint}.")
+    if len(matches) != 1:
+        raise ValueError(f"Ambiguous include {name!r}: {', '.join(str(path) for path in matches)}.")
+    directory = matches[0]
+    sources = sorted(
+        source for source in directory.rglob("*")
+        if source.is_file() and source.suffix in (".yaml", ".yml")
+    )
+    if not sources:
+        raise ValueError(f"Include {name!r}: no YAML operator files in {directory}.")
+    groups = {}
+    for source in sources:
+        if not source.resolve().is_relative_to(directory):
+            raise ValueError(f"{source}: operator files must stay inside include {name!r}.")
+        relative = Path(namespace) / group_name / source.relative_to(directory)
+        groups[relative] = read_yaml(source)
+    return groups
+
+
 def merge_operators(groups):
     operators = {}
     operator_sources = {}
@@ -176,26 +210,49 @@ def merge_operators(groups):
     return operators
 
 
-def load_language(manifest_path):
+def load_language(manifest_path, spec_paths=()):
     manifest_path = Path(manifest_path).resolve()
     manifest = read_yaml(manifest_path)
     if not isinstance(manifest, dict) or set(manifest) - {"operatorDirectories", "include"}:
         raise ValueError(f"{manifest_path}: expected include and/or operatorDirectories.")
     includes = manifest.get("include", [])
     if not isinstance(includes, list):
-        raise ValueError(f"{manifest_path}: include must be a list of bundled definition names.")
+        raise ValueError(f"{manifest_path}: include must be a list of namespace:group names.")
+    roots = list(dict.fromkeys(Path(path).resolve() for path in spec_paths))
+    for root in roots:
+        if not root.is_dir():
+            raise ValueError(f"{manifest_path}: spec search path must be an existing directory: {root}.")
     groups = {}
+    targets = {}
+
+    def add_groups(additions, origin):
+        for relative, definitions in additions.items():
+            target = relative.with_suffix(".schema.yaml").as_posix().casefold()
+            if target in targets:
+                raise ValueError(f"Output collision between {targets[target]} and {origin} {relative}.")
+            targets[target] = f"{origin} {relative}"
+            groups[relative] = definitions
+
     selected = set()
     for name in includes:
-        if not isinstance(name, str) or name not in BUNDLED_INCLUDES:
-            raise ValueError(f"{manifest_path}: unknown include {name!r}; expected one of {', '.join(BUNDLED_INCLUDES)}.")
+        if not isinstance(name, str) or not INCLUDE_NAME.fullmatch(name):
+            raise ValueError(f"{manifest_path}: invalid include {name!r}; expected lowercase namespace:group identifiers.")
         if name in selected:
             raise ValueError(f"{manifest_path}: repeated include {name!r}.")
         selected.add(name)
-        groups.update(_load_bundled(name))
+        if name.startswith("gramson:"):
+            if name not in BUNDLED_INCLUDES:
+                raise ValueError(f"{manifest_path}: unknown bundled include {name!r}; gramson: is reserved for this package.")
+            add_groups(_load_bundled(name), "bundled")
+        else:
+            try:
+                additions = _load_external(name, roots)
+            except ValueError as error:
+                raise ValueError(f"{manifest_path}: {error}") from error
+            add_groups(additions, f"include {name!r}")
     directories = manifest.get("operatorDirectories", [])
     if not isinstance(directories, list) or (not directories and not groups):
-        raise ValueError(f"{manifest_path}: operatorDirectories must be a nonempty list unless include selects bundled definitions.")
+        raise ValueError(f"{manifest_path}: operatorDirectories must be a nonempty list unless include selects definitions.")
     source_root = manifest_path.parent
     sources = set()
     seen_directories = set()
@@ -221,17 +278,9 @@ def load_language(manifest_path):
             if not source.resolve().is_relative_to(source_root):
                 raise ValueError(f"{source}: operator files must stay inside the specification.")
             sources.add(source)
-    targets = {
-        relative.with_suffix(".schema.yaml").as_posix().casefold(): f"bundled {relative}"
-        for relative in groups
-    }
     for source in sorted(sources):
         relative = source.relative_to(source_root)
-        target = relative.with_suffix(".schema.yaml").as_posix().casefold()
-        if target in targets:
-            raise ValueError(f"Output collision between {targets[target]} and local {relative}.")
-        targets[target] = relative
-        groups[relative] = read_yaml(source)
+        add_groups({relative: read_yaml(source)}, "local")
     groups = dict(sorted(groups.items()))
     merge_operators(groups)
     return groups

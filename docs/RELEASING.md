@@ -24,7 +24,8 @@ distribution, rather than directly from the checkout. It then checks:
   in the source archive. This maintainer release guide stays in the repository
   and is explicitly excluded from both distributions.
 - The CLI entry point, MIT license, and third-party notices in the wheel.
-- Core generation, named extension selection, custom-language composition, JSON and YAML validation, and
+- Core generation, named extension selection, external namespace resolution,
+  custom-language composition, JSON and YAML validation, and
   rejection of an unknown operator, from an installed wheel outside the checkout.
   This smoke test installs with `--no-deps`
   and uses the release environment's existing dependencies.

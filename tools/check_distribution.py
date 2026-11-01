@@ -152,6 +152,19 @@ runpy.run_module('gramson', run_name='__main__')
         )
         run_cli(["validate", "bitwise-expression.json", "--schema", "bitwise-grammar/expression.schema.yaml"])
         run_cli(["validate", "bitwise-expression.json"], 1)
+        external_group = directory / "vendor" / "mystuff" / "myops"
+        external_group.mkdir(parents=True)
+        (external_group / "ops.yaml").write_text(
+            "externalWrap:\n  schemaName: externalWrapper\n  argumentKind: expression\n  minArgs: 1\n  maxArgs: 1\n"
+        )
+        (directory / "external-language.yaml").write_text("include: [gramson:core, mystuff:myops]\n")
+        run_cli([
+            "generate", "--manifest", "external-language.yaml", "--spec-path", "vendor",
+            "--output-directory", "external-grammar",
+        ])
+        (directory / "external-expression.json").write_text('{"externalWrap":[{"+":[1,2]}]}')
+        run_cli(["validate", "external-expression.json", "--schema", "external-grammar/expression.schema.yaml"])
+        run_cli(["validate", "external-expression.json"], 1)
     print(f"Verified {name} {version}: metadata, licenses, {len(schemas)} schemas, bundled declarations, source files, installed generation and validation.")
 
 

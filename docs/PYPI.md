@@ -64,6 +64,26 @@ No declaration copying is needed. Add `operatorDirectories` for local groups,
 or include only `gramson:bitwise` to select it without core. Duplicate includes,
 unknown names, and operator, definition-name, or output-path collisions are errors.
 
+User-owned libraries can use their own namespaces:
+
+```yaml
+include:
+  - gramson:core
+  - mystuff:myops
+```
+
+```sh
+gramson generate --manifest language.yaml --spec-path ./vendor --output-directory generated
+```
+
+This reads operator declarations from `vendor/mystuff/myops/` recursively.
+Repeat `--spec-path` for multiple libraries; paths are relative to the command's
+working directory. `gramson:` is reserved for bundled definitions. Unknown or
+ambiguous includes fail, and namespace labels do not prefix operator keys.
+Generated schemas remain self-contained and validate without the source library.
+See the [external library example](https://github.com/kbck/gramson/tree/main/examples/external),
+also runnable with `make example-external` from the source distribution.
+
 `gramson generate --output-directory generated` writes the bundled core grammar
 as a self-contained directory. For a custom language, create a manifest:
 
