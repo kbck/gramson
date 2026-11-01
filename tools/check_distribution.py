@@ -1,12 +1,12 @@
 """Check release artifacts and smoke-test the wheel outside the checkout."""
 
 import argparse
-from configparser import ConfigParser
-from email.parser import Parser
-from pathlib import Path
 import subprocess
 import sys
 import tarfile
+from configparser import ConfigParser
+from email.parser import Parser
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 

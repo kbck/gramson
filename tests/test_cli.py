@@ -1,12 +1,12 @@
-from contextlib import redirect_stderr, redirect_stdout
-from io import StringIO
 import json
-from pathlib import Path
 import shutil
 import subprocess
 import sys
-from tempfile import TemporaryDirectory
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from gramson.cli import main

@@ -1,13 +1,17 @@
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
 
-from jsonschema import Draft202012Validator
 import yaml
+from jsonschema import Draft202012Validator
 
-from gramson.generation import generate_schemas, load_core, load_language, merge_operators
+from gramson.generation import (
+    generate_schemas,
+    load_core,
+    load_language,
+    merge_operators,
+)
 from schema_support import schema_registry
-
 
 WRAP = {"wrap": {
     "schemaName": "wrapper", "argumentKind": "expression", "minArgs": 1, "maxArgs": 1,

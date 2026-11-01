@@ -1,22 +1,27 @@
 import argparse
-from functools import lru_cache
-from importlib.resources import files
 import json
 import math
-from pathlib import Path
 import sys
+from functools import lru_cache
+from importlib.resources import files
+from pathlib import Path
 from urllib.parse import quote, urlsplit
 from urllib.request import url2pathname
 
+import yaml
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, best_match
 from referencing import Registry, Resource
 from referencing.exceptions import NoSuchResource, Unresolvable
 from referencing.jsonschema import DRAFT202012
-import yaml
 
-from .generation import generate_schemas, load_core, load_language, read_yaml, write_schemas
-
+from .generation import (
+    generate_schemas,
+    load_core,
+    load_language,
+    read_yaml,
+    write_schemas,
+)
 
 SCHEMA_BASE = "https://gramson.invalid/schema/"
 

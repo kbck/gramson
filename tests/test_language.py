@@ -1,16 +1,15 @@
-from pathlib import Path
 import subprocess
 import sys
-from tempfile import TemporaryDirectory
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
-from jsonschema import Draft202012Validator
 import yaml
+from jsonschema import Draft202012Validator
 
+from gramson.generation import load_core, merge_operators
 from schema_support import schema_registry
 from tools.generate_schema import generate_schemas, load_language
-from gramson.generation import load_core, merge_operators
-
 
 ROOT = Path(__file__).resolve().parents[1]
 

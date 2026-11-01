@@ -1,8 +1,7 @@
 """Repository entry point; the reusable generator lives in gramson.generation."""
 
-from pathlib import Path
 import sys
-
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 if __name__ == "__main__":
@@ -10,9 +9,19 @@ if __name__ == "__main__":
 
 # Keep existing imports from tools.generate_schema working.
 from gramson.generation import (
-    UniqueKeyLoader, definition_reference, generate_schema, generate_schemas,
-    load_language, merge_operators, read_yaml,
+    UniqueKeyLoader,
+    definition_reference,
+    generate_schema,
+    generate_schemas,
+    load_language,
+    merge_operators,
+    read_yaml,
 )
+
+__all__ = [
+    "UniqueKeyLoader", "definition_reference", "generate_schema", "generate_schemas",
+    "load_language", "merge_operators", "read_yaml",
+]
 
 
 if __name__ == "__main__":

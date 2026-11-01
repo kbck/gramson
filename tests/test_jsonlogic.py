@@ -1,12 +1,11 @@
 import hashlib
 import json
-from pathlib import Path
 import unittest
+from pathlib import Path
 
 from jsonschema import Draft202012Validator
 
 from schema_support import read_schemas, schema_registry
-
 
 ROOT = Path(__file__).resolve().parents[1]
 VENDOR = ROOT / "tests" / "vendor" / "jsonlogic"

@@ -6,7 +6,7 @@ VENV_PYTHON := $(VENV)/bin/python
 HOST ?= 127.0.0.1
 PORT ?= 8765
 
-.PHONY: help setup setup-release generate example example-bitwise example-external lint lint-openapi test check build check-dist serve
+.PHONY: help setup setup-release generate example example-bitwise example-external lint lint-python lint-openapi test check build check-dist serve
 
 help: ## Show available targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -41,7 +41,10 @@ example-external: ## Generate and validate an external namespace include
 	"$(VENV_PYTHON)" -m gramson validate examples/external/expressions/nested.yaml --schema build/examples/external/expression.schema.yaml
 	"$(VENV_PYTHON)" -m gramson validate examples/external/expressions/nested.json --schema build/examples/external/expression.schema.yaml
 
-lint: lint-openapi ## Run specification linting
+lint: lint-python lint-openapi ## Run Python and OpenAPI linting
+
+lint-python: ## Lint Python code and import ordering with Ruff
+	"$(VENV_PYTHON)" -m ruff check .
 
 lint-openapi: ## Validate the OpenAPI document and its external references
 	"$(VENV_PYTHON)" -m openapi_spec_validator docs/openapi.yaml

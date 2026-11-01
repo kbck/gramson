@@ -46,3 +46,15 @@ include-package-data = false
 [tool.setuptools.package-data]
 "gramson.schemas" = ["*.schema.yaml", "**/*.schema.yaml"]
 "gramson.specs" = ["*.yaml", "**/*.yaml", "*.yml", "**/*.yml"]
+
+[tool.ruff]
+target-version = "py310"
+src = [".", "tests"]
+extend-exclude = ["tests/vendor"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# The repository script adds its parent directory before importing the package.
+"tools/generate_schema.py" = ["E402"]

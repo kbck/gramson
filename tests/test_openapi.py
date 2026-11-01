@@ -1,17 +1,16 @@
 import json
-from pathlib import Path
 import subprocess
 import sys
-from tempfile import TemporaryDirectory
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
+import yaml
 from jsonschema import Draft202012Validator
 from referencing import Resource
-import yaml
 
 from schema_support import read_schemas, schema_registry
 from tools.generate_schema import generate_schemas, load_language
-
 
 ROOT = Path(__file__).resolve().parents[1]
 

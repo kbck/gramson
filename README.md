@@ -229,7 +229,7 @@ operator calls.
 - `docs/openapi.yaml`: hand-written placeholder `POST /evaluate` specification;
   its only schema components reference `expression` and `jsonValue`.
 - `docs/index.html`: Swagger viewer; see [viewing instructions](docs/README.md).
-- `requirements-dev.txt`: generation, validation, and YAML-reading dependencies.
+- `requirements-dev.txt`: generation, validation, YAML-reading, and Ruff linting dependencies.
 
 ## Layout and composition
 
@@ -269,7 +269,9 @@ Run `make` or `make help` to list targets:
 | `example` | Generate and validate the included core extension example. |
 | `example-bitwise` | Generate and validate the bitwise extension example. |
 | `example-external` | Generate and validate a user-owned namespace include. |
-| `lint` / `lint-openapi` | Validate the hand-written OpenAPI document and external references with [openapi-spec-validator](https://openapi-spec-validator.readthedocs.io/en/stable/cli.html). |
+| `lint` | Run Python and OpenAPI linting. |
+| `lint-python` | Check Python code and import ordering with Ruff. |
+| `lint-openapi` | Validate the hand-written OpenAPI document and external references with [openapi-spec-validator](https://openapi-spec-validator.readthedocs.io/en/stable/cli.html). |
 | `test` | Run all tests, including schema validation and generation freshness. |
 | `check` | Run lint and tests without rewriting generated files. |
 | `setup-release` | Install development and release tooling. |
@@ -290,6 +292,11 @@ It also builds and verifies the wheel and source distribution. The
 [release guide](docs/RELEASING.md) documents local checks and the PyPI Trusted
 Publishing setup. Publishing a matching GitHub release triggers the separate
 publication workflow; routine pushes and pull requests only build and check.
+
+Python linting uses Ruff, configured in `pyproject.toml` for Python 3.10 with
+error, unused-code, and import-order checks. `make lint-python` checks without
+rewriting files. To apply safe fixes locally, run `.venv/bin/python -m ruff check . --fix`.
+Ruff is a development dependency; the installed CLI does not require it.
 
 Generation uses PyYAML to read and write YAML. Tests use local schemas and bundled
 metaschema support, with no remote schema fetches. The expression, shared, and grouped operator schemas are

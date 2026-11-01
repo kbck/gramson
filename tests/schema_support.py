@@ -1,7 +1,7 @@
 import json
 
-from referencing import Registry, Resource
 import yaml
+from referencing import Registry, Resource
 
 
 def read_schemas(directory):

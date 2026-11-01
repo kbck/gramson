@@ -1,11 +1,10 @@
-from importlib.resources import files
 import posixpath
-from pathlib import Path
 import re
+from importlib.resources import files
+from pathlib import Path
 from urllib.parse import quote
 
 import yaml
-
 
 BUNDLED_INCLUDES = {
     "gramson:core": Path("core"),

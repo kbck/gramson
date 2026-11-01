@@ -1,11 +1,17 @@
 import json
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
 
 from gramson.cli import expression_validator
-from gramson.generation import generate_schemas, load_core, load_language, merge_operators, read_yaml, write_schemas
-
+from gramson.generation import (
+    generate_schemas,
+    load_core,
+    load_language,
+    merge_operators,
+    read_yaml,
+    write_schemas,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = ROOT / "examples" / "bitwise"

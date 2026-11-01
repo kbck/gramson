@@ -1,13 +1,17 @@
-from copy import deepcopy
 import json
-from pathlib import Path
 import unittest
+from copy import deepcopy
+from pathlib import Path
 
-from jsonschema import Draft202012Validator
 import yaml
+from jsonschema import Draft202012Validator
 
-from tools.generate_schema import generate_schema, generate_schemas, load_language, merge_operators
-
+from tools.generate_schema import (
+    generate_schema,
+    generate_schemas,
+    load_language,
+    merge_operators,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
