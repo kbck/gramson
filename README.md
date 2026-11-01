@@ -14,7 +14,8 @@ It also supports `?:` as an alias for `if`.
 Gramson currently defines and validates syntax; it does not evaluate expressions
 or implement semantic typing.
 
-The vendored upstream tests retain their MIT license and attribution; see
+Gramson is licensed under the [MIT License](LICENSE). The vendored upstream
+tests retain their MIT license and attribution; see
 [third-party notices](THIRD_PARTY_NOTICES.md).
 
 The [language manifest](spec/language.yaml), operator definitions in
