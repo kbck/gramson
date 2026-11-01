@@ -1,18 +1,26 @@
 # Gramson
 
-**Define JSON expression languages in YAML. Generate JSON Schema to validate them.**
+**Define operators once. Generate the grammar that validates your JSON expressions.**
 
-Gramson is a Python library and CLI that compiles operator declarations into
-recursive Draft 2020-12 JSON Schema grammars. Declare argument counts, shorthand,
-and recursive expression or string arguments, then combine bundled groups and
-your own libraries into one language.
+Adding operators to a JSON expression language means keeping its syntax rules
+and validation in sync. Gramson compiles YAML operator declarations into a
+recursive JSON Schema grammar, so adding an operator or changing its arguments
+doesn't require hand-editing the validation schema.
 
-Gramson validates syntax; it does not evaluate expressions.
+## Why Gramson?
 
-## Why this project exists
+JSON Schema can already validate recursive expressions. Gramson generates the
+operator objects, argument-count constraints, shorthand forms, and references
+from your declarations. JSON Logic supplies the bundled starting profile;
+you can extend it or define an independent language.
 
-Keep operator definitions and syntax validation in sync: define the rules once
-and regenerate the schemas when your language changes.
+**Operator libraries become composable grammar modules.** Include groups from
+different libraries, and their operators can nest inside one another. The
+combined grammar is generated from the selected definitions and works with
+standard Draft 2020-12 JSON Schema validators.
+
+Gramson is a Python library and CLI. It defines and validates syntax; it does
+not evaluate expressions.
 
 ## Example
 
