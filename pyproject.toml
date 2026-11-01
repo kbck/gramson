@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gramson"
+version = "0.1.0"
+description = "Define JSON expression languages declaratively"
+readme = "docs/PYPI.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md", "tests/vendor/jsonlogic/LICENSE"]
+dependencies = ["jsonschema>=4.18,<5", "PyYAML>=6,<7", "referencing>=0.28,<1"]
+authors = [{name = "Kim Bäckström"}]
+keywords = ["json-logic", "json-schema", "expressions", "validation", "yaml"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Code Generators",
+]
+
+[project.urls]
+Homepage = "https://github.com/kbck/gramson"
+Documentation = "https://github.com/kbck/gramson#readme"
+Repository = "https://github.com/kbck/gramson"
+Issues = "https://github.com/kbck/gramson/issues"
+
+[project.scripts]
+gramson = "gramson.cli:main"
+
+[tool.setuptools]
+packages = ["gramson", "gramson.schemas"]
+include-package-data = false
+
+[tool.setuptools.package-dir]
+"gramson.schemas" = "schema"
+
+[tool.setuptools.package-data]
+"gramson.schemas" = ["*.schema.yaml", "**/*.schema.yaml"]

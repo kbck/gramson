@@ -8,11 +8,13 @@ recursive JSON Schema grammar. JSON parsing supplies the expression tree;
 standard JSON Schema validators check whether that tree belongs to the language.
 Operator groups can be combined, and their expressions can nest across groups.
 
-The included expression language covers the syntax of all 34
-[documented JSON Logic operators](https://jsonlogic.com/operations.html).
-It also supports `?:` as an alias for `if`.
-Gramson currently defines and validates syntax; it does not evaluate expressions
-or implement semantic typing.
+The included JSON Logic syntax profile covers all 34
+[documented operators](https://jsonlogic.com/operations.html) plus the `?:` alias.
+All 278 expressions in the [pinned upstream test corpus](tests/vendor/jsonlogic/README.md)
+pass validation. Gramson applies stricter structural rules than the reference
+interpreter, including argument-count constraints, rejection of object literals,
+and validation of every branch. It does not evaluate expressions or implement
+semantic typing; runtime equivalence is not tested.
 
 Gramson is licensed under the [MIT License](LICENSE). The vendored upstream
 tests retain their MIT license and attribution; see
@@ -25,6 +27,45 @@ The [expression schema](schema/expression.schema.yaml) is generated Draft
 2020-12 JSON Schema: edit the operator definitions and regenerate rather than changing
 the schema by hand. The [specification guide](spec/README.md) describes the
 registry format, supported forms, and compatibility boundaries.
+
+## Validate an expression
+
+Install from this checkout with `make setup`, then activate the environment:
+
+```sh
+. .venv/bin/activate
+gramson validate expression.json
+gramson validate expression.yaml
+printf '%s\n' '{"var":"price"}' | gramson validate -
+printf '%s\n' 'var: price' | gramson validate --format yaml -
+```
+
+Each input contains one expression, without a request envelope or example-list
+wrapper. Files ending in `.yaml` or `.yml` are read as YAML; other files and stdin
+default to JSON. Use `--format json` or `--format yaml` to override detection.
+For example, `expression.yaml` could contain:
+
+```yaml
+if:
+  - '>':
+      - var: age
+      - 18
+  - adult
+  - minor
+```
+
+YAML is an alternative way to write JSON values, not a separate expression
+language. Quote operator keys when YAML syntax requires it, such as `'!'` and
+`'?:'`. Object keys must be strings; duplicate keys, non-finite numbers,
+YAML-only values such as timestamps, and cyclic aliases are rejected as input
+errors. Quote a date to use it as a string. Empty input is rejected; use `null`
+for a null expression.
+
+Validation uses the bundled generated grammar and resolves references locally,
+without network requests. Success is printed to stdout; failures go to stderr
+with an expression location. Exit codes are `0` for valid syntax, `1` for an
+invalid expression, and `2` for input or command usage errors. It does not evaluate
+expressions. `python -m gramson validate ...` is also supported after installation.
 
 ## Scope and decisions
 
@@ -62,6 +103,8 @@ operator calls.
   grouped into data, logic, comparison, arithmetic, collection, string, and debugging.
   Longer descriptions are optional.
 - `tools/generate_schema.py`: generates the expression grammar.
+- `gramson/cli.py`: validates JSON or YAML expressions using the bundled grammar.
+- `pyproject.toml`: package metadata, runtime dependencies, and the `gramson` command.
 - `schema/expression.schema.yaml`: generated language entry point.
 - `schema/core/*.schema.yaml`: generated named operator definitions, mirroring
   the source directories and file base names.
@@ -117,11 +160,14 @@ Run `make` or `make help` to list targets:
 
 | Target | Purpose |
 | --- | --- |
-| `setup` | Create `.venv` and install development dependencies. |
+| `setup` | Create `.venv` and install the CLI and development dependencies. |
 | `generate` | Generate the expression, shared, and operator JSON Schemas. |
 | `lint` / `lint-openapi` | Validate the hand-written OpenAPI document and external references with [openapi-spec-validator](https://openapi-spec-validator.readthedocs.io/en/stable/cli.html). |
 | `test` | Run all tests, including schema validation and generation freshness. |
 | `check` | Run lint and tests without rewriting generated files. |
+| `setup-release` | Install development and release tooling. |
+| `build` | Build a source archive and a wheel from that source archive. |
+| `check-dist` | Build and check metadata, bundled schemas, and the installed CLI. |
 | `serve` | Regenerate schemas and serve the Swagger viewer at `http://127.0.0.1:8765/docs/`. |
 
 Override `PYTHON` or `VENV` for setup, or `HOST` and `PORT` for the viewer,
@@ -129,6 +175,14 @@ for example `make serve PORT=8000`. Run `make setup` before other targets.
 The OpenAPI wrapper and JSON-value schema remain hand-written; `make generate`
 only rebuilds the expression grammar. `make check` fails when generated schemas
 are stale, so regenerate and commit them after changing operator sources.
+
+[GitHub Actions](.github/workflows/check.yml) runs `make check` on every push and
+pull request with Python 3.10 and 3.14. CI checks the committed schemas without
+regenerating them.
+It also builds and verifies the wheel and source distribution. The
+[release guide](docs/RELEASING.md) documents local checks and the PyPI Trusted
+Publishing setup. Publishing a matching GitHub release triggers the separate
+publication workflow; routine pushes and pull requests only build and check.
 
 Generation uses PyYAML to read and write YAML. Tests use local schemas and bundled
 metaschema support, with no remote schema fetches. The expression, shared, and grouped operator schemas are
