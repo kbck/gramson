@@ -155,3 +155,13 @@ change. Tests assert syntax and data shape, not evaluation results.
 Settle semantic typing, conversions, and runtime compatibility before building
 an evaluator. For each syntax change, update the relevant operator file, regenerate the
 schemas, and add accepted and rejected examples.
+
+## Acknowledgements
+
+Gramson's included expression language builds on [JSON Logic](https://jsonlogic.com/),
+created by Jeremy Wadhams. Its operator forms and shared test corpus provide the
+basis for Gramson's JSON Logic syntax compatibility checks.
+
+The upstream test corpus is vendored with its original MIT license and copyright
+notice. See the [snapshot provenance](tests/vendor/jsonlogic/README.md) and
+[third-party notices](THIRD_PARTY_NOTICES.md).
