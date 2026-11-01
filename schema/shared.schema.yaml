@@ -1,0 +1,9 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: Shared expression definitions
+$defs:
+  scalarLiteral:
+    type:
+    - 'null'
+    - boolean
+    - number
+    - string

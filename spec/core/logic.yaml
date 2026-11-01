@@ -1,0 +1,45 @@
+if:
+  title: Conditional
+  summary: Choose a result using condition/result pairs.
+  description: Accepts an optional final fallback. If no condition matches and no
+    fallback is supplied, the agreed result is null. At least one pair is required;
+    evaluation is not implemented.
+  schemaName: conditional
+  argumentKind: expression
+  minArgs: 2
+and:
+  title: Logical AND
+  summary: Combine expressions using the JSON Logic AND form.
+  description: The intended JSON Logic behavior short-circuits and returns an operand
+    value. Truthiness and evaluation rules are not implemented.
+  schemaName: logicalAnd
+  argumentKind: expression
+  minArgs: 1
+  shorthand: true
+or:
+  title: Logical OR
+  summary: Combine expressions using the JSON Logic OR form.
+  description: The intended JSON Logic behavior short-circuits and returns an operand
+    value. Truthiness and evaluation rules are not implemented.
+  schemaName: logicalOr
+  argumentKind: expression
+  minArgs: 1
+  shorthand: true
+'!':
+  title: Logical NOT
+  summary: Negate the truthiness of one expression.
+  schemaName: logicalNot
+  argumentKind: expression
+  minArgs: 1
+  maxArgs: 1
+  shorthand: true
+'!!':
+  title: Boolean conversion
+  summary: Use the JSON Logic Boolean conversion form.
+  description: One expression is accepted. The syntax does not settle the DSL's conversion
+    or truthiness policy.
+  schemaName: booleanCast
+  argumentKind: expression
+  minArgs: 1
+  maxArgs: 1
+  shorthand: true

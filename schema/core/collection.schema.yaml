@@ -1,0 +1,146 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: collection operators
+$defs:
+  map:
+    title: Map
+    type: object
+    required:
+    - map
+    additionalProperties: false
+    properties:
+      map:
+        type: array
+        items:
+          $ref: ../expression.schema.yaml#/$defs/expression
+        minItems: 2
+        maxItems: 2
+    description: 'Transform collection elements using a body expression.
+
+
+      Arguments are source and body. Element-relative variable scope is an evaluation
+      concern; source and result types are not checked.'
+  filter:
+    title: Filter
+    type: object
+    required:
+    - filter
+    additionalProperties: false
+    properties:
+      filter:
+        type: array
+        items:
+          $ref: ../expression.schema.yaml#/$defs/expression
+        minItems: 2
+        maxItems: 2
+    description: 'Select collection elements using a predicate expression.
+
+
+      Arguments are source and predicate. Element-relative scope and truthiness remain
+      evaluation concerns.'
+  reduce:
+    title: Reduce
+    type: object
+    required:
+    - reduce
+    additionalProperties: false
+    properties:
+      reduce:
+        type: array
+        items:
+          $ref: ../expression.schema.yaml#/$defs/expression
+        minItems: 2
+        maxItems: 3
+    description: 'Combine collection elements using a body expression.
+
+
+      Arguments are source, body, and optional initial value. The JSON Logic current/accumulator
+      context is not implemented.'
+  all:
+    title: All elements
+    type: object
+    required:
+    - all
+    additionalProperties: false
+    properties:
+      all:
+        type: array
+        items:
+          $ref: ../expression.schema.yaml#/$defs/expression
+        minItems: 2
+        maxItems: 2
+    description: 'Test whether all collection elements satisfy a predicate.
+
+
+      Arguments are source and predicate. Empty-collection behavior and element-relative
+      scope remain runtime questions.'
+  some:
+    title: Some elements
+    type: object
+    required:
+    - some
+    additionalProperties: false
+    properties:
+      some:
+        type: array
+        items:
+          $ref: ../expression.schema.yaml#/$defs/expression
+        minItems: 2
+        maxItems: 2
+    description: 'Test whether any collection element satisfies a predicate.
+
+
+      Arguments are source and predicate. Empty-collection behavior and element-relative
+      scope remain runtime questions.'
+  none:
+    title: No elements
+    type: object
+    required:
+    - none
+    additionalProperties: false
+    properties:
+      none:
+        type: array
+        items:
+          $ref: ../expression.schema.yaml#/$defs/expression
+        minItems: 2
+        maxItems: 2
+    description: 'Test whether no collection element satisfies a predicate.
+
+
+      Arguments are source and predicate. Empty-collection behavior and element-relative
+      scope remain runtime questions.'
+  merge:
+    title: Merge
+    type: object
+    required:
+    - merge
+    additionalProperties: false
+    properties:
+      merge:
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 0
+    description: Combine zero or more values using the JSON Logic merge form.
+  membership:
+    title: Membership
+    type: object
+    required:
+    - in
+    additionalProperties: false
+    properties:
+      in:
+        type: array
+        items:
+          $ref: ../expression.schema.yaml#/$defs/expression
+        minItems: 2
+        maxItems: 2
+    description: 'Use the array-membership or substring-search form.
+
+
+      Arguments are the sought value and collection or string. Evaluated operand types
+      are not checked.'

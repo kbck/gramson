@@ -1,0 +1,24 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: debugging operators
+$defs:
+  log:
+    title: Log
+    type: object
+    required:
+    - log
+    additionalProperties: false
+    properties:
+      log:
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 1
+          maxItems: 1
+    description: 'Use the JSON Logic logging form.
+
+
+      Accepts one expression. Schema validation never evaluates or logs its value.'

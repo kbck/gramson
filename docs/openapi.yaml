@@ -1,0 +1,74 @@
+openapi: 3.1.1
+info:
+  title: Gramson schema viewer
+  version: 0.1.0
+  summary: Proposed evaluation interface; no evaluation service is implemented.
+  description: Browse the generated expression grammar and operator documentation.
+    POST /evaluate is a proposed interface only. Evaluation, operator result types,
+    coercion, and most runtime behavior remain unspecified.
+paths:
+  /evaluate:
+    post:
+      operationId: evaluateExpression
+      summary: Evaluate an expression (not implemented)
+      description: 'Documentation placeholder, not a working endpoint. The expression
+        grammar is defined; the data context is unconstrained JSON. A successful response
+        is the result itself: a JSON scalar, array, or object, without a result envelope.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - expression
+              additionalProperties: false
+              properties:
+                expression:
+                  $ref: '#/components/schemas/expression'
+                data:
+                  description: Optional evaluation context; any JSON value.
+            example:
+              expression:
+                if:
+                - '>':
+                  - var: age
+                  - 18
+                - adult
+              data:
+                age: 21
+      responses:
+        '200':
+          description: Evaluation result (proposed contract; no evaluator is implemented).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/jsonValue'
+              examples:
+                scalar:
+                  summary: A scalar result
+                  value: adult
+                'null':
+                  summary: An if result without a matching branch or fallback
+                  value: null
+                array:
+                  summary: An array containing objects and nested arrays
+                  value:
+                  - name: Ada
+                  - - 1
+                    - null
+                object:
+                  summary: An object returned from input data
+                  value:
+                    name: Ada
+                    scores:
+                    - 1
+                    - 2
+        '501':
+          description: 'Placeholder only: evaluator not implemented.'
+components:
+  schemas:
+    expression:
+      $ref: ../schema/expression.schema.yaml
+    jsonValue:
+      $ref: ./json-value.schema.yaml

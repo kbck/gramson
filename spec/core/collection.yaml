@@ -1,0 +1,70 @@
+map:
+  title: Map
+  summary: Transform collection elements using a body expression.
+  description: Arguments are source and body. Element-relative variable scope is an
+    evaluation concern; source and result types are not checked.
+  schemaName: map
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+filter:
+  title: Filter
+  summary: Select collection elements using a predicate expression.
+  description: Arguments are source and predicate. Element-relative scope and truthiness
+    remain evaluation concerns.
+  schemaName: filter
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+reduce:
+  title: Reduce
+  summary: Combine collection elements using a body expression.
+  description: Arguments are source, body, and optional initial value. The JSON Logic
+    current/accumulator context is not implemented.
+  schemaName: reduce
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 3
+all:
+  title: All elements
+  summary: Test whether all collection elements satisfy a predicate.
+  description: Arguments are source and predicate. Empty-collection behavior and element-relative
+    scope remain runtime questions.
+  schemaName: all
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+some:
+  title: Some elements
+  summary: Test whether any collection element satisfies a predicate.
+  description: Arguments are source and predicate. Empty-collection behavior and element-relative
+    scope remain runtime questions.
+  schemaName: some
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+none:
+  title: No elements
+  summary: Test whether no collection element satisfies a predicate.
+  description: Arguments are source and predicate. Empty-collection behavior and element-relative
+    scope remain runtime questions.
+  schemaName: none
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+merge:
+  title: Merge
+  summary: Combine zero or more values using the JSON Logic merge form.
+  schemaName: merge
+  argumentKind: expression
+  minArgs: 0
+  shorthand: true
+in:
+  title: Membership
+  summary: Use the array-membership or substring-search form.
+  description: Arguments are the sought value and collection or string. Evaluated
+    operand types are not checked.
+  schemaName: membership
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2

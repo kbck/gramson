@@ -1,0 +1,16 @@
+cat:
+  title: Concatenation
+  summary: Use the string concatenation form with zero or more expressions.
+  schemaName: concatenation
+  argumentKind: expression
+  minArgs: 0
+  shorthand: true
+substr:
+  title: Substring
+  summary: Select part of a string using an offset and optional length.
+  description: Arguments are source, offset, and optional length. Negative offsets
+    and lengths are runtime behavior, not schema constraints.
+  schemaName: substring
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 3

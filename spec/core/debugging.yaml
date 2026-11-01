@@ -1,0 +1,10 @@
+log:
+  title: Log
+  summary: Use the JSON Logic logging form.
+  description: Accepts one expression. Schema validation never evaluates or logs its
+    value.
+  schemaName: log
+  argumentKind: expression
+  minArgs: 1
+  maxArgs: 1
+  shorthand: true

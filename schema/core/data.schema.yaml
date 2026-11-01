@@ -1,0 +1,64 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: data operators
+$defs:
+  variable:
+    title: Variable lookup
+    type: object
+    required:
+    - var
+    additionalProperties: false
+    properties:
+      var:
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 0
+          maxItems: 2
+    description: 'Read a value from the evaluation context.
+
+
+      Accepts an optional key and default. Keys may be expressions; path resolution
+      and missing-value behavior remain runtime design questions.'
+  missing:
+    title: Missing keys
+    type: object
+    required:
+    - missing
+    additionalProperties: false
+    properties:
+      missing:
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 1
+    description: 'Identify requested keys that are absent.
+
+
+      Accepts key expressions or a single key-list expression. Validation checks syntax
+      without inspecting evaluation data.'
+  missingSome:
+    title: Minimum key presence
+    type: object
+    required:
+    - missing_some
+    additionalProperties: false
+    properties:
+      missing_some:
+        type: array
+        items:
+          $ref: ../expression.schema.yaml#/$defs/expression
+        minItems: 2
+        maxItems: 2
+    description: 'Check whether enough requested keys are present.
+
+
+      Arguments are the required count followed by a key-list expression. Count and
+      key types are not statically checked.'

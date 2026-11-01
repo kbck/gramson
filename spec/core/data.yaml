@@ -1,0 +1,28 @@
+var:
+  title: Variable lookup
+  summary: Read a value from the evaluation context.
+  description: Accepts an optional key and default. Keys may be expressions; path
+    resolution and missing-value behavior remain runtime design questions.
+  schemaName: variable
+  argumentKind: expression
+  minArgs: 0
+  maxArgs: 2
+  shorthand: true
+missing:
+  title: Missing keys
+  summary: Identify requested keys that are absent.
+  description: Accepts key expressions or a single key-list expression. Validation
+    checks syntax without inspecting evaluation data.
+  schemaName: missing
+  argumentKind: expression
+  minArgs: 1
+  shorthand: true
+missing_some:
+  title: Minimum key presence
+  summary: Check whether enough requested keys are present.
+  description: Arguments are the required count followed by a key-list expression.
+    Count and key types are not statically checked.
+  schemaName: missingSome
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2

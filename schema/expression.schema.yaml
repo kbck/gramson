@@ -1,0 +1,47 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: Gramson expression grammar
+description: Generated structural grammar; no evaluation or semantic typing.
+$ref: '#/$defs/expression'
+$defs:
+  expression:
+    oneOf:
+    - $ref: shared.schema.yaml#/$defs/scalarLiteral
+    - $ref: '#/$defs/arrayExpression'
+    - $ref: core/arithmetic.schema.yaml#/$defs/addition
+    - $ref: core/arithmetic.schema.yaml#/$defs/subtraction
+    - $ref: core/arithmetic.schema.yaml#/$defs/multiplication
+    - $ref: core/arithmetic.schema.yaml#/$defs/division
+    - $ref: core/arithmetic.schema.yaml#/$defs/remainder
+    - $ref: core/arithmetic.schema.yaml#/$defs/minimum
+    - $ref: core/arithmetic.schema.yaml#/$defs/maximum
+    - $ref: core/collection.schema.yaml#/$defs/map
+    - $ref: core/collection.schema.yaml#/$defs/filter
+    - $ref: core/collection.schema.yaml#/$defs/reduce
+    - $ref: core/collection.schema.yaml#/$defs/all
+    - $ref: core/collection.schema.yaml#/$defs/some
+    - $ref: core/collection.schema.yaml#/$defs/none
+    - $ref: core/collection.schema.yaml#/$defs/merge
+    - $ref: core/collection.schema.yaml#/$defs/membership
+    - $ref: core/comparison.schema.yaml#/$defs/equal
+    - $ref: core/comparison.schema.yaml#/$defs/strictEqual
+    - $ref: core/comparison.schema.yaml#/$defs/notEqual
+    - $ref: core/comparison.schema.yaml#/$defs/strictNotEqual
+    - $ref: core/comparison.schema.yaml#/$defs/greaterThan
+    - $ref: core/comparison.schema.yaml#/$defs/greaterThanOrEqual
+    - $ref: core/comparison.schema.yaml#/$defs/lessThan
+    - $ref: core/comparison.schema.yaml#/$defs/lessThanOrEqual
+    - $ref: core/data.schema.yaml#/$defs/variable
+    - $ref: core/data.schema.yaml#/$defs/missing
+    - $ref: core/data.schema.yaml#/$defs/missingSome
+    - $ref: core/debugging.schema.yaml#/$defs/log
+    - $ref: core/logic.schema.yaml#/$defs/conditional
+    - $ref: core/logic.schema.yaml#/$defs/logicalAnd
+    - $ref: core/logic.schema.yaml#/$defs/logicalOr
+    - $ref: core/logic.schema.yaml#/$defs/logicalNot
+    - $ref: core/logic.schema.yaml#/$defs/booleanCast
+    - $ref: core/string.schema.yaml#/$defs/concatenation
+    - $ref: core/string.schema.yaml#/$defs/substring
+  arrayExpression:
+    type: array
+    items:
+      $ref: '#/$defs/expression'

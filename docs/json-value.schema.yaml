@@ -1,0 +1,22 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: JSON value
+description: >-
+  An evaluation result: a scalar, a recursive array, or an object with JSON
+  values. Objects are data, not operator expressions.
+$ref: '#/$defs/jsonValue'
+$defs:
+  jsonValue:
+    oneOf:
+      - $ref: ../schema/shared.schema.yaml#/$defs/scalarLiteral
+      - $ref: '#/$defs/arrayValue'
+      - $ref: '#/$defs/objectValue'
+  arrayValue:
+    title: Array value
+    type: array
+    items:
+      $ref: '#/$defs/jsonValue'
+  objectValue:
+    title: Object value
+    type: object
+    additionalProperties:
+      $ref: '#/$defs/jsonValue'

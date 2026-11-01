@@ -1,0 +1,121 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: arithmetic operators
+$defs:
+  addition:
+    title: Addition
+    type: object
+    required:
+    - +
+    additionalProperties: false
+    properties:
+      +:
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 1
+    description: 'Use the addition or unary numeric conversion form.
+
+
+      Accepts one or more expressions. Unary conversion syntax is included without
+      deciding conversion behavior.'
+  subtraction:
+    title: Subtraction
+    type: object
+    required:
+    - '-'
+    additionalProperties: false
+    properties:
+      '-':
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 1
+          maxItems: 2
+    description: Negate one value or subtract a second value from the first.
+  multiplication:
+    title: Multiplication
+    type: object
+    required:
+    - '*'
+    additionalProperties: false
+    properties:
+      '*':
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 1
+    description: Multiply one or more values.
+  division:
+    title: Division
+    type: object
+    required:
+    - /
+    additionalProperties: false
+    properties:
+      /:
+        type: array
+        items:
+          $ref: ../expression.schema.yaml#/$defs/expression
+        minItems: 2
+        maxItems: 2
+    description: Divide the first value by the second.
+  remainder:
+    title: Remainder
+    type: object
+    required:
+    - '%'
+    additionalProperties: false
+    properties:
+      '%':
+        type: array
+        items:
+          $ref: ../expression.schema.yaml#/$defs/expression
+        minItems: 2
+        maxItems: 2
+    description: Use the remainder form with two expressions.
+  minimum:
+    title: Minimum
+    type: object
+    required:
+    - min
+    additionalProperties: false
+    properties:
+      min:
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 1
+    description: Select the minimum of one or more values.
+  maximum:
+    title: Maximum
+    type: object
+    required:
+    - max
+    additionalProperties: false
+    properties:
+      max:
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 1
+    description: Select the maximum of one or more values.

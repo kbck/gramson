@@ -1,0 +1,103 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: logic operators
+$defs:
+  conditional:
+    title: Conditional
+    type: object
+    required:
+    - if
+    additionalProperties: false
+    properties:
+      if:
+        type: array
+        items:
+          $ref: ../expression.schema.yaml#/$defs/expression
+        minItems: 2
+    description: 'Choose a result using condition/result pairs.
+
+
+      Accepts an optional final fallback. If no condition matches and no fallback
+      is supplied, the agreed result is null. At least one pair is required; evaluation
+      is not implemented.'
+  logicalAnd:
+    title: Logical AND
+    type: object
+    required:
+    - and
+    additionalProperties: false
+    properties:
+      and:
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 1
+    description: 'Combine expressions using the JSON Logic AND form.
+
+
+      The intended JSON Logic behavior short-circuits and returns an operand value.
+      Truthiness and evaluation rules are not implemented.'
+  logicalOr:
+    title: Logical OR
+    type: object
+    required:
+    - or
+    additionalProperties: false
+    properties:
+      or:
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 1
+    description: 'Combine expressions using the JSON Logic OR form.
+
+
+      The intended JSON Logic behavior short-circuits and returns an operand value.
+      Truthiness and evaluation rules are not implemented.'
+  logicalNot:
+    title: Logical NOT
+    type: object
+    required:
+    - '!'
+    additionalProperties: false
+    properties:
+      '!':
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 1
+          maxItems: 1
+    description: Negate the truthiness of one expression.
+  booleanCast:
+    title: Boolean conversion
+    type: object
+    required:
+    - '!!'
+    additionalProperties: false
+    properties:
+      '!!':
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 1
+          maxItems: 1
+    description: 'Use the JSON Logic Boolean conversion form.
+
+
+      One expression is accepted. The syntax does not settle the DSL''s conversion
+      or truthiness policy.'

@@ -1,0 +1,678 @@
+[
+  {
+    "name": "null literal",
+    "expression": null
+  },
+  {
+    "name": "boolean literal",
+    "expression": true
+  },
+  {
+    "name": "integer literal",
+    "expression": 42
+  },
+  {
+    "name": "fractional literal",
+    "expression": -1.5
+  },
+  {
+    "name": "string literal",
+    "expression": "hello"
+  },
+  {
+    "name": "variable shorthand",
+    "expression": {
+      "var": "price"
+    }
+  },
+  {
+    "name": "variable argument array",
+    "expression": {
+      "var": [
+        "price"
+      ]
+    }
+  },
+  {
+    "name": "empty variable key",
+    "expression": {
+      "var": ""
+    }
+  },
+  {
+    "name": "addition",
+    "expression": {
+      "+": [
+        1,
+        2
+      ]
+    }
+  },
+  {
+    "name": "variadic addition",
+    "expression": {
+      "+": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "name": "comparison",
+    "expression": {
+      ">": [
+        {
+          "var": "age"
+        },
+        18
+      ]
+    }
+  },
+  {
+    "name": "recursive nesting",
+    "expression": {
+      ">": [
+        {
+          "+": [
+            {
+              "var": [
+                "price"
+              ]
+            },
+            {
+              "+": [
+                2,
+                3
+              ]
+            }
+          ]
+        },
+        100
+      ]
+    }
+  },
+  {
+    "name": "structurally valid with unresolved operand types",
+    "expression": {
+      "+": [
+        true,
+        "2",
+        null
+      ]
+    }
+  },
+  {
+    "name": "recursive array",
+    "expression": [
+      1,
+      {
+        "+": [
+          2,
+          3
+        ]
+      },
+      [
+        null,
+        false
+      ]
+    ]
+  },
+  {
+    "name": "empty array",
+    "expression": []
+  },
+  {
+    "name": "numeric variable key",
+    "expression": {
+      "var": 0
+    }
+  },
+  {
+    "name": "variable default",
+    "expression": {
+      "var": [
+        "price",
+        0
+      ]
+    }
+  },
+  {
+    "name": "computed key",
+    "expression": {
+      "var": [
+        {
+          "cat": [
+            "user",
+            ".name"
+          ]
+        },
+        "unknown"
+      ]
+    }
+  },
+  {
+    "name": "variable context",
+    "expression": {
+      "var": []
+    }
+  },
+  {
+    "name": "missing keys",
+    "expression": {
+      "missing": [
+        "name",
+        "email"
+      ]
+    }
+  },
+  {
+    "name": "missing shorthand",
+    "expression": {
+      "missing": "email"
+    }
+  },
+  {
+    "name": "missing key array",
+    "expression": {
+      "missing": [
+        [
+          "name",
+          "email"
+        ]
+      ]
+    }
+  },
+  {
+    "name": "minimum present keys",
+    "expression": {
+      "missing_some": [
+        1,
+        [
+          "email",
+          "phone"
+        ]
+      ]
+    }
+  },
+  {
+    "name": "if without fallback",
+    "expression": {
+      "if": [
+        false,
+        "yes"
+      ]
+    }
+  },
+  {
+    "name": "if explicit null fallback",
+    "expression": {
+      "if": [
+        false,
+        "yes",
+        null
+      ]
+    }
+  },
+  {
+    "name": "if with fallback",
+    "expression": {
+      "if": [
+        true,
+        "yes",
+        "no"
+      ]
+    }
+  },
+  {
+    "name": "chained if without fallback",
+    "expression": {
+      "if": [
+        false,
+        "first",
+        true,
+        "second"
+      ]
+    }
+  },
+  {
+    "name": "chained if with fallback",
+    "expression": {
+      "if": [
+        false,
+        "first",
+        false,
+        "second",
+        "last"
+      ]
+    }
+  },
+  {
+    "name": "nested if",
+    "expression": {
+      "if": [
+        {
+          ">": [
+            {
+              "var": "age"
+            },
+            18
+          ]
+        },
+        {
+          "if": [
+            {
+              "var": "member"
+            },
+            "member",
+            "guest"
+          ]
+        },
+        null
+      ]
+    }
+  },
+  {
+    "name": "and",
+    "expression": {
+      "and": [
+        {
+          "var": "enabled"
+        },
+        {
+          ">=": [
+            {
+              "var": "age"
+            },
+            18
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "or",
+    "expression": {
+      "or": [
+        {
+          "var": "name"
+        },
+        "guest"
+      ]
+    }
+  },
+  {
+    "name": "not shorthand",
+    "expression": {
+      "!": {
+        "var": "enabled"
+      }
+    }
+  },
+  {
+    "name": "boolean array operand",
+    "expression": {
+      "!!": [
+        []
+      ]
+    }
+  },
+  {
+    "name": "loose equality syntax",
+    "expression": {
+      "==": [
+        1,
+        "1"
+      ]
+    }
+  },
+  {
+    "name": "strict equality syntax",
+    "expression": {
+      "===": [
+        1,
+        1
+      ]
+    }
+  },
+  {
+    "name": "inequality",
+    "expression": {
+      "!=": [
+        1,
+        2
+      ]
+    }
+  },
+  {
+    "name": "strict inequality",
+    "expression": {
+      "!==": [
+        1,
+        "1"
+      ]
+    }
+  },
+  {
+    "name": "exclusive range",
+    "expression": {
+      "<": [
+        0,
+        {
+          "var": "age"
+        },
+        100
+      ]
+    }
+  },
+  {
+    "name": "inclusive range",
+    "expression": {
+      "<=": [
+        0,
+        {
+          "var": "age"
+        },
+        100
+      ]
+    }
+  },
+  {
+    "name": "unary addition",
+    "expression": {
+      "+": "3.14"
+    }
+  },
+  {
+    "name": "unary subtraction",
+    "expression": {
+      "-": 2
+    }
+  },
+  {
+    "name": "binary subtraction",
+    "expression": {
+      "-": [
+        5,
+        2
+      ]
+    }
+  },
+  {
+    "name": "multiplication",
+    "expression": {
+      "*": [
+        2,
+        3,
+        4
+      ]
+    }
+  },
+  {
+    "name": "division",
+    "expression": {
+      "/": [
+        8,
+        2
+      ]
+    }
+  },
+  {
+    "name": "remainder",
+    "expression": {
+      "%": [
+        8,
+        3
+      ]
+    }
+  },
+  {
+    "name": "minimum",
+    "expression": {
+      "min": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "name": "maximum",
+    "expression": {
+      "max": [
+        1,
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "name": "map literal array",
+    "expression": {
+      "map": [
+        [
+          1,
+          2,
+          3
+        ],
+        {
+          "*": [
+            {
+              "var": ""
+            },
+            2
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "filter external array",
+    "expression": {
+      "filter": [
+        {
+          "var": "items"
+        },
+        {
+          ">": [
+            {
+              "var": "score"
+            },
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "reduce with initial value",
+    "expression": {
+      "reduce": [
+        [
+          1,
+          2,
+          3
+        ],
+        {
+          "+": [
+            {
+              "var": "current"
+            },
+            {
+              "var": "accumulator"
+            }
+          ]
+        },
+        0
+      ]
+    }
+  },
+  {
+    "name": "reduce without initial value",
+    "expression": {
+      "reduce": [
+        {
+          "var": "items"
+        },
+        {
+          "var": "current"
+        }
+      ]
+    }
+  },
+  {
+    "name": "all",
+    "expression": {
+      "all": [
+        [
+          1,
+          2
+        ],
+        {
+          ">": [
+            {
+              "var": ""
+            },
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "some",
+    "expression": {
+      "some": [
+        [
+          -1,
+          2
+        ],
+        {
+          ">": [
+            {
+              "var": ""
+            },
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "none",
+    "expression": {
+      "none": [
+        [
+          -1,
+          -2
+        ],
+        {
+          ">": [
+            {
+              "var": ""
+            },
+            0
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "merge arrays",
+    "expression": {
+      "merge": [
+        [
+          1,
+          2
+        ],
+        [
+          3
+        ],
+        {
+          "var": "items"
+        }
+      ]
+    }
+  },
+  {
+    "name": "empty merge",
+    "expression": {
+      "merge": []
+    }
+  },
+  {
+    "name": "membership",
+    "expression": {
+      "in": [
+        2,
+        [
+          1,
+          2,
+          3
+        ]
+      ]
+    }
+  },
+  {
+    "name": "substring membership",
+    "expression": {
+      "in": [
+        "ell",
+        "hello"
+      ]
+    }
+  },
+  {
+    "name": "concatenation",
+    "expression": {
+      "cat": [
+        "Hello ",
+        {
+          "var": "name"
+        }
+      ]
+    }
+  },
+  {
+    "name": "empty concatenation",
+    "expression": {
+      "cat": []
+    }
+  },
+  {
+    "name": "substring to end",
+    "expression": {
+      "substr": [
+        "hello",
+        1
+      ]
+    }
+  },
+  {
+    "name": "substring with length",
+    "expression": {
+      "substr": [
+        "hello",
+        1,
+        3
+      ]
+    }
+  },
+  {
+    "name": "logging syntax",
+    "expression": {
+      "log": {
+        "var": "value"
+      }
+    }
+  },
+  {
+    "name": "types remain unresolved",
+    "expression": {
+      "map": [
+        true,
+        "not a predicate"
+      ]
+    }
+  }
+]

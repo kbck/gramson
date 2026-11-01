@@ -1,0 +1,359 @@
+[
+  {
+    "name": "unknown operator",
+    "expression": {
+      "unknown": [
+        1
+      ]
+    },
+    "reason": "Operator names must be registered."
+  },
+  {
+    "name": "extra properties",
+    "expression": {
+      "if": [
+        true,
+        1
+      ],
+      "label": "result"
+    },
+    "reason": "Operator objects are closed."
+  },
+  {
+    "name": "empty object",
+    "expression": {},
+    "reason": "Object literals remain outside this profile."
+  },
+  {
+    "name": "if no arguments",
+    "expression": {
+      "if": []
+    },
+    "reason": "At least one condition/result pair is required."
+  },
+  {
+    "name": "if only condition",
+    "expression": {
+      "if": [
+        true
+      ]
+    },
+    "reason": "At least one condition/result pair is required."
+  },
+  {
+    "name": "if scalar",
+    "expression": {
+      "if": true
+    },
+    "reason": "if requires an argument array."
+  },
+  {
+    "name": "variable excess arguments",
+    "expression": {
+      "var": [
+        "x",
+        0,
+        1
+      ]
+    },
+    "reason": "var allows at most a key and default."
+  },
+  {
+    "name": "missing some short",
+    "expression": {
+      "missing_some": [
+        1
+      ]
+    },
+    "reason": "Two arguments are required."
+  },
+  {
+    "name": "missing some long",
+    "expression": {
+      "missing_some": [
+        1,
+        [],
+        2
+      ]
+    },
+    "reason": "Only two arguments are allowed."
+  },
+  {
+    "name": "not no arguments",
+    "expression": {
+      "!": []
+    },
+    "reason": "Use [[]] for one empty-array operand."
+  },
+  {
+    "name": "not excess arguments",
+    "expression": {
+      "!": [
+        true,
+        false
+      ]
+    },
+    "reason": "Negation is unary."
+  },
+  {
+    "name": "boolean cast excess arguments",
+    "expression": {
+      "!!": [
+        0,
+        1
+      ]
+    },
+    "reason": "Boolean casting is unary."
+  },
+  {
+    "name": "and empty",
+    "expression": {
+      "and": []
+    },
+    "reason": "This profile requires at least one operand."
+  },
+  {
+    "name": "or empty",
+    "expression": {
+      "or": []
+    },
+    "reason": "This profile requires at least one operand."
+  },
+  {
+    "name": "equality short",
+    "expression": {
+      "==": [
+        1
+      ]
+    },
+    "reason": "Equality is binary."
+  },
+  {
+    "name": "comparison long",
+    "expression": {
+      ">=": [
+        3,
+        2,
+        1
+      ]
+    },
+    "reason": "Only < and <= have three-argument range forms."
+  },
+  {
+    "name": "range too long",
+    "expression": {
+      "<": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    "reason": "Range comparisons allow at most three arguments."
+  },
+  {
+    "name": "addition empty",
+    "expression": {
+      "+": []
+    },
+    "reason": "This profile requires at least one operand."
+  },
+  {
+    "name": "subtraction too long",
+    "expression": {
+      "-": [
+        3,
+        2,
+        1
+      ]
+    },
+    "reason": "Subtraction is unary or binary."
+  },
+  {
+    "name": "division unary",
+    "expression": {
+      "/": 2
+    },
+    "reason": "Division is binary."
+  },
+  {
+    "name": "map short",
+    "expression": {
+      "map": [
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    "reason": "map needs a source and body."
+  },
+  {
+    "name": "filter long",
+    "expression": {
+      "filter": [
+        [],
+        true,
+        false
+      ]
+    },
+    "reason": "filter needs exactly two arguments."
+  },
+  {
+    "name": "reduce long",
+    "expression": {
+      "reduce": [
+        [],
+        0,
+        0,
+        0
+      ]
+    },
+    "reason": "reduce allows an optional third initial value."
+  },
+  {
+    "name": "all scalar",
+    "expression": {
+      "all": true
+    },
+    "reason": "Collection tests need source and predicate arguments."
+  },
+  {
+    "name": "membership short",
+    "expression": {
+      "in": [
+        1
+      ]
+    },
+    "reason": "Membership is binary."
+  },
+  {
+    "name": "substring short",
+    "expression": {
+      "substr": [
+        "hello"
+      ]
+    },
+    "reason": "A source and offset are required."
+  },
+  {
+    "name": "substring long",
+    "expression": {
+      "substr": [
+        "hello",
+        0,
+        1,
+        2
+      ]
+    },
+    "reason": "Only source, offset and optional length are allowed."
+  },
+  {
+    "name": "log long",
+    "expression": {
+      "log": [
+        1,
+        2
+      ]
+    },
+    "reason": "log is unary."
+  },
+  {
+    "name": "unknown in array",
+    "expression": [
+      1,
+      [
+        {
+          "unknown": 2
+        }
+      ]
+    ],
+    "reason": "Arrays recursively validate expressions."
+  },
+  {
+    "name": "unknown in if branch",
+    "expression": {
+      "if": [
+        false,
+        {
+          "unknown": 1
+        },
+        null
+      ]
+    },
+    "reason": "Every branch must be structurally valid, even an unselected one."
+  },
+  {
+    "name": "unknown in collection body",
+    "expression": {
+      "map": [
+        [],
+        {
+          "unknown": 1
+        }
+      ]
+    },
+    "reason": "Collection bodies must be expressions."
+  },
+  {
+    "name": "invalid default expression",
+    "expression": {
+      "var": [
+        "x",
+        {
+          "+": []
+        }
+      ]
+    },
+    "reason": "Defaults follow the recursive grammar."
+  },
+  {
+    "name": "object literal",
+    "expression": {
+      "price": 10
+    },
+    "reason": "Object literals are outside the grammar."
+  },
+  {
+    "name": "multiple operators",
+    "expression": {
+      "+": [
+        1,
+        2
+      ],
+      ">": [
+        3,
+        2
+      ]
+    },
+    "reason": "An operator object has exactly one property."
+  },
+  {
+    "name": "extra metadata",
+    "expression": {
+      "var": "price",
+      "label": "Price"
+    },
+    "reason": "Extra properties are forbidden."
+  },
+  {
+    "name": "short comparison",
+    "expression": {
+      ">": [
+        1
+      ]
+    },
+    "reason": "Comparison needs exactly two arguments."
+  },
+  {
+    "name": "long comparison",
+    "expression": {
+      ">": [
+        3,
+        2,
+        1
+      ]
+    },
+    "reason": "Comparison needs exactly two arguments."
+  }
+]

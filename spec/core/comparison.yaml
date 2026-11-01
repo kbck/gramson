@@ -1,0 +1,64 @@
+==:
+  title: Equality
+  summary: Compare two expressions using the coercing equality form.
+  description: Coercion behavior remains an open runtime decision; validation accepts
+    the expression structure only.
+  schemaName: equal
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+===:
+  title: Strict equality
+  summary: Compare two expressions using the strict equality form.
+  schemaName: strictEqual
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+'!=':
+  title: Inequality
+  summary: Compare two expressions using the coercing inequality form.
+  description: Coercion behavior remains an open runtime decision; validation accepts
+    the expression structure only.
+  schemaName: notEqual
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+'!==':
+  title: Strict inequality
+  summary: Compare two expressions using the strict inequality form.
+  schemaName: strictNotEqual
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+'>':
+  title: Greater than
+  summary: Compare whether the first value exceeds the second.
+  schemaName: greaterThan
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+'>=':
+  title: Greater than or equal
+  summary: Compare whether the first value is at least the second.
+  schemaName: greaterThanOrEqual
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+<:
+  title: Less than
+  summary: Compare values in increasing order.
+  description: Accepts two expressions for comparison or three expressions for an
+    exclusive range.
+  schemaName: lessThan
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 3
+<=:
+  title: Less than or equal
+  summary: Compare values in nondecreasing order.
+  description: Accepts two expressions for comparison or three expressions for an
+    inclusive range.
+  schemaName: lessThanOrEqual
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 3

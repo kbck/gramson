@@ -1,0 +1,38 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: string operators
+$defs:
+  concatenation:
+    title: Concatenation
+    type: object
+    required:
+    - cat
+    additionalProperties: false
+    properties:
+      cat:
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 0
+    description: Use the string concatenation form with zero or more expressions.
+  substring:
+    title: Substring
+    type: object
+    required:
+    - substr
+    additionalProperties: false
+    properties:
+      substr:
+        type: array
+        items:
+          $ref: ../expression.schema.yaml#/$defs/expression
+        minItems: 2
+        maxItems: 3
+    description: 'Select part of a string using an offset and optional length.
+
+
+      Arguments are source, offset, and optional length. Negative offsets and lengths
+      are runtime behavior, not schema constraints.'

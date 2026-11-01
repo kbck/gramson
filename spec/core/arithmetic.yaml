@@ -1,0 +1,52 @@
++:
+  title: Addition
+  summary: Use the addition or unary numeric conversion form.
+  description: Accepts one or more expressions. Unary conversion syntax is included
+    without deciding conversion behavior.
+  schemaName: addition
+  argumentKind: expression
+  minArgs: 1
+  shorthand: true
+'-':
+  title: Subtraction
+  summary: Negate one value or subtract a second value from the first.
+  schemaName: subtraction
+  argumentKind: expression
+  minArgs: 1
+  maxArgs: 2
+  shorthand: true
+'*':
+  title: Multiplication
+  summary: Multiply one or more values.
+  schemaName: multiplication
+  argumentKind: expression
+  minArgs: 1
+  shorthand: true
+/:
+  title: Division
+  summary: Divide the first value by the second.
+  schemaName: division
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+'%':
+  title: Remainder
+  summary: Use the remainder form with two expressions.
+  schemaName: remainder
+  argumentKind: expression
+  minArgs: 2
+  maxArgs: 2
+min:
+  title: Minimum
+  summary: Select the minimum of one or more values.
+  schemaName: minimum
+  argumentKind: expression
+  minArgs: 1
+  shorthand: true
+max:
+  title: Maximum
+  summary: Select the maximum of one or more values.
+  schemaName: maximum
+  argumentKind: expression
+  minArgs: 1
+  shorthand: true
