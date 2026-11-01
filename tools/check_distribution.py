@@ -43,6 +43,11 @@ def main():
         path.relative_to(ROOT / "schema").as_posix(): path.read_bytes()
         for path in (ROOT / "schema").rglob("*.schema.yaml")
     }
+    specifications = {
+        path.relative_to(ROOT / "spec").as_posix(): path.read_bytes()
+        for path in (ROOT / "spec").rglob("*")
+        if path.is_file() and path.suffix in (".yaml", ".yml")
+    }
     with ZipFile(wheel) as archive:
         require(
             not any(Path(path).name == "RELEASING.md" for path in archive.namelist()),
@@ -54,6 +59,12 @@ def main():
             if path.startswith("gramson/schemas/") and path.endswith(".schema.yaml")
         }
         require(bundled == schemas, "Wheel schemas differ from the committed generated schemas.")
+        bundled_specifications = {
+            path.removeprefix("gramson/specs/"): archive.read(path)
+            for path in archive.namelist()
+            if path.startswith("gramson/specs/") and path.endswith((".yaml", ".yml"))
+        }
+        require(bundled_specifications == specifications, "Wheel operator declarations differ from the specification.")
         metadata = Parser().parsestr(archive.read(f"{name}-{version}.dist-info/METADATA").decode())
         require(metadata["Name"] == name and metadata["Version"] == version, "Unexpected wheel metadata.")
         require(metadata["License-Expression"] == "MIT", "Missing MIT license metadata.")
@@ -100,21 +111,39 @@ sys.path.insert(0, str(installed))
 import gramson
 if not pathlib.Path(gramson.__file__).resolve().is_relative_to(installed):
     raise SystemExit('Imported the checkout instead of the installed wheel.')
-sys.argv = ['gramson', 'validate', sys.argv[2]]
+sys.argv = ['gramson', *sys.argv[2:]]
 runpy.run_module('gramson', run_name='__main__')
 """
+        def run_cli(arguments, expected=0):
+            result = subprocess.run(
+                [sys.executable, "-I", "-c", launcher, str(installed), *arguments],
+                cwd=directory, capture_output=True, text=True,
+            )
+            require(result.returncode == expected, result.stdout + result.stderr)
+
         for filename, contents, expected in (
             ("expression.json", '{"+": [{"var": "price"}, 1]}', 0),
             ("expression.yaml", "if: [true, {var: price}, 0]\n", 0),
             ("invalid.json", '{"unknown": []}', 1),
         ):
             (directory / filename).write_text(contents)
-            result = subprocess.run(
-                [sys.executable, "-I", "-c", launcher, str(installed), filename],
-                cwd=directory, capture_output=True, text=True,
-            )
-            require(result.returncode == expected, result.stdout + result.stderr)
-    print(f"Verified {name} {version}: metadata, licenses, {len(schemas)} bundled schemas, source files, and installed CLI.")
+            run_cli(["validate", filename], expected)
+        run_cli(["generate", "--output-directory", "core-grammar"])
+        generated = {
+            path.relative_to(directory / "core-grammar").as_posix(): path.read_bytes()
+            for path in (directory / "core-grammar").rglob("*.schema.yaml")
+        }
+        require(generated == schemas, "Installed generator differs from the bundled grammar.")
+        (directory / "custom").mkdir()
+        (directory / "custom/wrap.yaml").write_text(
+            "wrap:\n  schemaName: wrapper\n  argumentKind: expression\n  minArgs: 1\n  maxArgs: 1\n"
+        )
+        (directory / "language.yaml").write_text("extends: gramson:core\noperatorDirectories: [custom]\n")
+        run_cli(["generate", "--manifest", "language.yaml", "--output-directory", "extended-grammar"])
+        (directory / "custom-expression.json").write_text('{"wrap":[{"+":[1,{"wrap":[2]}]}]}')
+        run_cli(["validate", "custom-expression.json", "--schema", "extended-grammar/expression.schema.yaml"])
+        run_cli(["validate", "custom-expression.json"], 1)
+    print(f"Verified {name} {version}: metadata, licenses, {len(schemas)} schemas, bundled declarations, source files, installed generation and validation.")
 
 
 if __name__ == "__main__":

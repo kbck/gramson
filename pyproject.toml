@@ -36,11 +36,13 @@ Issues = "https://github.com/kbck/gramson/issues"
 gramson = "gramson.cli:main"
 
 [tool.setuptools]
-packages = ["gramson", "gramson.schemas"]
+packages = ["gramson", "gramson.schemas", "gramson.specs"]
 include-package-data = false
 
 [tool.setuptools.package-dir]
 "gramson.schemas" = "schema"
+"gramson.specs" = "spec"
 
 [tool.setuptools.package-data]
 "gramson.schemas" = ["*.schema.yaml", "**/*.schema.yaml"]
+"gramson.specs" = ["*.yaml", "**/*.yaml", "*.yml", "**/*.yml"]

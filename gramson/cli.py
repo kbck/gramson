@@ -1,15 +1,21 @@
 import argparse
+from functools import lru_cache
 from importlib.resources import files
 import json
 import math
 from pathlib import Path
 import sys
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
+from urllib.request import url2pathname
 
 from jsonschema import Draft202012Validator
-from jsonschema.exceptions import best_match
+from jsonschema.exceptions import SchemaError, best_match
 from referencing import Registry, Resource
+from referencing.exceptions import NoSuchResource, Unresolvable
+from referencing.jsonschema import DRAFT202012
 import yaml
+
+from .generation import generate_schemas, load_core, load_language, read_yaml, write_schemas
 
 
 SCHEMA_BASE = "https://gramson.invalid/schema/"
@@ -57,26 +63,55 @@ def check_json_value(value, ancestors=None):
     ancestors.remove(id(value))
 
 
-def expression_validator():
-    """Load bundled schemas into a registry with no remote retrieval."""
+def expression_validator(schema_path=None):
+    """Load bundled or generated local schemas with no remote retrieval."""
     schemas = {}
+
+    def load_schema(source):
+        if source.name.endswith(".json"):
+            schema = json.loads(source.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
+        else:
+            schema = read_yaml(source)
+        Draft202012Validator.check_schema(schema)
+        return schema
+
+    if schema_path is not None:
+        schema_path = Path(schema_path).resolve()
+        root = schema_path.parent
+
+        @lru_cache(maxsize=None)
+        def retrieve_local(uri):
+            parsed = urlsplit(uri)
+            if parsed.scheme != "file" or parsed.netloc:
+                raise NoSuchResource(ref=uri)
+            source = Path(url2pathname(parsed.path)).resolve()
+            if not source.is_relative_to(root):
+                raise NoSuchResource(ref=uri)
+            return Resource.from_contents(load_schema(source), default_specification=DRAFT202012)
+
+        # Resolve only referenced files, without scanning unrelated directories
+        # or falling back to package resources or network retrieval.
+        registry = Registry(retrieve=retrieve_local).with_resource(
+            schema_path.as_uri(),
+            Resource.from_contents(load_schema(schema_path), default_specification=DRAFT202012),
+        )
+        return Draft202012Validator({"$ref": schema_path.as_uri()}, registry=registry)
 
     def read_directory(directory, prefix=""):
         for item in directory.iterdir():
             relative = prefix + item.name
             if item.is_dir():
                 read_directory(item, relative + "/")
-            elif item.name.endswith(".schema.yaml"):
-                schemas[relative] = yaml.safe_load(item.read_text(encoding="utf-8"))
+            elif item.name.endswith((".schema.yaml", ".schema.yml", ".schema.json")):
+                schemas[relative] = load_schema(item)
 
     read_directory(files("gramson.schemas"))
     registry = Registry().with_resources(
-        (SCHEMA_BASE + quote(name, safe="/"), Resource.from_contents(schema))
+        (SCHEMA_BASE + quote(name, safe="/"), Resource.from_contents(schema, default_specification=DRAFT202012))
         for name, schema in schemas.items()
     )
     return Draft202012Validator({
-        "$id": SCHEMA_BASE + "expression.schema.yaml",
-        **schemas["expression.schema.yaml"],
+        "$ref": SCHEMA_BASE + "expression.schema.yaml",
     }, registry=registry)
 
 
@@ -101,12 +136,26 @@ def error_detail(error):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(prog="gramson", description="Validate Gramson expression syntax offline.")
+    parser = argparse.ArgumentParser(prog="gramson", description="Generate grammars and validate Gramson expression syntax offline.")
     commands = parser.add_subparsers(dest="command", required=True)
+    generate = commands.add_parser("generate", help="Generate a self-contained expression grammar.")
+    generate.add_argument("--manifest", type=Path, help="Language manifest; defaults to the bundled core language.")
+    generate.add_argument("--output-directory", type=Path, default=Path("schema"), help="Output directory (default: schema).")
     validate = commands.add_parser("validate", help="Validate one JSON or YAML expression.")
     validate.add_argument("expression", help="Expression file, or - to read stdin.")
     validate.add_argument("--format", choices=("json", "yaml"), help="Override file format; stdin defaults to JSON.")
+    validate.add_argument("--schema", type=Path, help="Generated schema entry point; defaults to the bundled grammar.")
     options = parser.parse_args(argv)
+    if options.command == "generate":
+        try:
+            groups = load_core() if options.manifest is None else load_language(options.manifest)
+            schemas = generate_schemas(groups)
+            write_schemas(schemas, options.output_directory)
+        except (OSError, UnicodeError, ValueError, yaml.YAMLError, RecursionError) as error:
+            print(f"gramson generate: {error}", file=sys.stderr)
+            return 2
+        print(f"Generated {len(schemas)} schemas in {options.output_directory}")
+        return 0
     label = "stdin" if options.expression == "-" else options.expression
     input_format = options.format or (
         "yaml" if Path(options.expression).suffix.lower() in (".yaml", ".yml") else "json"
@@ -125,7 +174,11 @@ def main(argv=None):
         print(f"{label}: input error: {error}", file=sys.stderr)
         return 2
 
-    error = next(expression_validator().iter_errors(expression), None)
+    try:
+        error = next(expression_validator(options.schema).iter_errors(expression), None)
+    except (OSError, UnicodeError, ValueError, yaml.YAMLError, SchemaError, Unresolvable, RecursionError) as error:
+        print(f"{label}: schema error: {error}", file=sys.stderr)
+        return 2
     if error is not None:
         location, message = error_detail(error)
         print(f"{label}: invalid expression at {location}: {message}", file=sys.stderr)

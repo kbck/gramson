@@ -3,7 +3,7 @@ recursive-include spec *.yaml *.yml *.md
 recursive-include schema *.schema.yaml
 recursive-include tools *.py
 recursive-include tests *.py *.json *.md LICENSE
-recursive-include examples *.json
+recursive-include examples *.json *.yaml *.yml *.md
 recursive-include docs *.md *.yaml *.html
 exclude docs/RELEASING.md
 global-exclude __pycache__ *.py[cod]

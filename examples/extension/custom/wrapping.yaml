@@ -1,0 +1,9 @@
+wrap:
+  schemaName: wrapper
+  title: Wrapper
+  summary: Wrap one expression.
+  description: Demonstrates custom syntax and recursive composition. No evaluation
+    behavior is implemented for this operator.
+  argumentKind: expression
+  minArgs: 1
+  maxArgs: 1

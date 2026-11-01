@@ -9,6 +9,7 @@ import yaml
 
 from schema_support import schema_registry
 from tools.generate_schema import generate_schemas, load_language
+from gramson.generation import load_core, merge_operators
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -75,6 +76,64 @@ class LanguageCompositionTests(unittest.TestCase):
         self.assertEqual(list(first), sorted(first))
         self.assertEqual(generate_schemas(first), generate_schemas(second))
 
+    def test_extends_core_composes_recursive_operands(self):
+        self.write("custom/wrapping.yaml", {"wrap": {
+            "schemaName": "wrapper", "argumentKind": "expression",
+            "minArgs": 1, "maxArgs": 1,
+        }})
+        self.write("language.yaml", {
+            "extends": "gramson:core", "operatorDirectories": ["custom"],
+        })
+        groups = load_language(self.manifest)
+        self.assertEqual(len(merge_operators(groups)), 36)
+        schemas = generate_schemas(groups)
+        self.assertIn(Path("core/arithmetic.schema.yaml"), schemas)
+        self.assertIn(Path("custom/wrapping.schema.yaml"), schemas)
+        validator = self.validator(schemas)
+        validator.validate({"+": [1, {"wrap": [{"var": "price"}]}]})
+        validator.validate({"wrap": [{"+": [1, {"wrap": [2]}]}]})
+        self.assertFalse(validator.is_valid({"wrap": [1, 2]}))
+        self.assertFalse(validator.is_valid({"wrap": [{"unknown": [1]}]}))
+
+    def test_core_only_manifest_and_bundled_sources_match_repository(self):
+        expected = load_language(ROOT / "spec" / "language.yaml")
+        self.assertEqual(load_core(), expected)
+        for manifest in ({"extends": "gramson:core"}, {
+            "extends": "gramson:core", "operatorDirectories": [],
+        }):
+            with self.subTest(manifest=manifest):
+                self.write("language.yaml", manifest)
+                self.assertEqual(load_language(self.manifest), expected)
+
+    def test_core_extension_rejects_operator_and_definition_collisions(self):
+        for name, schema_name, diagnostic in (
+            ("+", "customAddition", "Duplicate operator"),
+            ("wrap", "addition", "Duplicate schemaName"),
+        ):
+            with self.subTest(name=name):
+                self.write("custom/wrapping.yaml", {name: {
+                    "schemaName": schema_name, "argumentKind": "expression", "minArgs": 1,
+                }})
+                self.write("language.yaml", {
+                    "extends": "gramson:core", "operatorDirectories": ["custom"],
+                })
+                with self.assertRaises(ValueError) as raised:
+                    load_language(self.manifest)
+                self.assertIn(diagnostic, str(raised.exception))
+                self.assertIn("core/arithmetic.yaml", str(raised.exception))
+                self.assertIn("custom/wrapping.yaml", str(raised.exception))
+
+    def test_core_output_namespace_is_reserved_only_when_extending(self):
+        self.write("language.yaml", {
+            "extends": "gramson:core", "operatorDirectories": ["core"],
+        })
+        with self.assertRaisesRegex(ValueError, "core/ is reserved"):
+            load_language(self.manifest)
+        self.write("language.yaml", {"operatorDirectories": ["core"]})
+        operators = merge_operators(load_language(self.manifest))
+        self.assertEqual(set(operators), {"plus"})
+        self.assertFalse(self.validator(generate_schemas(load_language(self.manifest))).is_valid({"+": [1, 2]}))
+
     def test_duplicate_operator_reports_both_sources(self):
         self.write("core/other.yaml", {"plus": {
             "schemaName": "otherAddition", "argumentKind": "expression", "minArgs": 1,
@@ -108,6 +167,10 @@ class LanguageCompositionTests(unittest.TestCase):
             {"operatorDirectories": ["."]}, {"operatorDirectories": [str(self.directory)]},
             {"operatorDirectories": ["core", "core"]},
             {"operatorDirectories": ["core"], "typo": True},
+            {"extends": "unknown:core"}, {"extends": None},
+            {"extends": ["gramson:core"]},
+            {"extends": "gramson:core", "operatorDirectories": None},
+            {"extends": "gramson:core", "typo": True},
         ]
         for manifest in manifests:
             with self.subTest(manifest=manifest):

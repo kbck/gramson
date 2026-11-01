@@ -6,7 +6,7 @@ VENV_PYTHON := $(VENV)/bin/python
 HOST ?= 127.0.0.1
 PORT ?= 8765
 
-.PHONY: help setup setup-release generate lint lint-openapi test check build check-dist serve
+.PHONY: help setup setup-release generate example lint lint-openapi test check build check-dist serve
 
 help: ## Show available targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -23,6 +23,11 @@ setup-release: setup ## Install development and release tooling
 
 generate: ## Generate JSON Schemas from the operator specification
 	"$(VENV_PYTHON)" tools/generate_schema.py
+
+example: ## Generate and validate the ready-to-run core extension example
+	"$(VENV_PYTHON)" -m gramson generate --manifest examples/extension/language.yaml --output-directory build/examples/extension
+	"$(VENV_PYTHON)" -m gramson validate examples/extension/expressions/nested.yaml --schema build/examples/extension/expression.schema.yaml
+	"$(VENV_PYTHON)" -m gramson validate examples/extension/expressions/nested.json --schema build/examples/extension/expression.schema.yaml
 
 lint: lint-openapi ## Run specification linting
 

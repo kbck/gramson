@@ -21,7 +21,7 @@ tests retain their MIT license and attribution; see
 [third-party notices](THIRD_PARTY_NOTICES.md).
 
 The [language manifest](spec/language.yaml), operator definitions in
-[spec/core](spec/core), and [generator](tools/generate_schema.py) are the
+[spec/core](spec/core), and [generator](gramson/generation.py) are the
 authoritative specification. The manifest selects operator directories.
 The [expression schema](schema/expression.schema.yaml) is generated Draft
 2020-12 JSON Schema: edit the operator definitions and regenerate rather than changing
@@ -61,11 +61,71 @@ YAML-only values such as timestamps, and cyclic aliases are rejected as input
 errors. Quote a date to use it as a string. Empty input is rejected; use `null`
 for a null expression.
 
-Validation uses the bundled generated grammar and resolves references locally,
+Validation uses the bundled generated grammar by default and resolves references locally,
 without network requests. Success is printed to stdout; failures go to stderr
 with an expression location. Exit codes are `0` for valid syntax, `1` for an
-invalid expression, and `2` for input or command usage errors. It does not evaluate
+invalid expression, and `2` for input, schema, or command usage errors. It does not evaluate
 expressions. `python -m gramson validate ...` is also supported after installation.
+
+## Define your own language
+
+Start with the [ready-to-run extension example](examples/extension/README.md):
+
+```sh
+make setup
+make example
+```
+
+It includes manifests for extending core and defining an independent language,
+a custom operator, equivalent JSON/YAML expressions, and an invalid example.
+Generated files go under the ignored `build/` directory.
+
+Generate the bundled core language into a self-contained directory:
+
+```sh
+gramson generate --output-directory generated
+```
+
+To extend it in your own project, create `my-language/language.yaml`:
+
+```yaml
+extends: gramson:core
+operatorDirectories:
+  - custom
+```
+
+Then define an operator in `my-language/custom/wrapping.yaml`:
+
+```yaml
+wrap:
+  schemaName: wrapper
+  title: Wrapper
+  summary: Wrap one expression.
+  argumentKind: expression
+  minArgs: 1
+  maxArgs: 1
+```
+
+Generate the composed grammar and validate against its entry point:
+
+```sh
+gramson generate --manifest my-language/language.yaml --output-directory generated
+gramson validate expression.yaml --schema generated/expression.schema.yaml
+printf '%s\n' '{"wrap":[{"+":[1,2]}]}' | gramson validate - --schema generated/expression.schema.yaml
+```
+
+The output contains core and custom operator schemas, shared definitions, and
+one root expression grammar. Core and custom operators can nest in each other.
+Move or distribute the whole output directory together; validation uses its
+local files without consulting the installed core language or making network
+requests. Without `--schema`, validation still uses the bundled core grammar.
+
+A manifest without `extends` defines an independent language using only its
+selected directories. `extends: gramson:core` can also be used alone to generate
+only core. Core inheritance uses the installed Gramson version, so pin that
+version alongside your manifest for reproducible builds. Duplicate operator keys
+or definition names are errors; `core/` is reserved for bundled groups when
+extending core. Declarations define syntax, not evaluation behavior.
 
 ## Scope and decisions
 
@@ -102,8 +162,9 @@ operator calls.
 - `spec/core/*.yaml`: operator syntax, arities, names, titles, and summaries,
   grouped into data, logic, comparison, arithmetic, collection, string, and debugging.
   Longer descriptions are optional.
-- `tools/generate_schema.py`: generates the expression grammar.
-- `gramson/cli.py`: validates JSON or YAML expressions using the bundled grammar.
+- `gramson/generation.py`: loads and composes specifications and generates schemas.
+- `tools/generate_schema.py`: repository generation entry point used by `make generate`.
+- `gramson/cli.py`: generates grammars and validates JSON or YAML expressions.
 - `pyproject.toml`: package metadata, runtime dependencies, and the `gramson` command.
 - `schema/expression.schema.yaml`: generated language entry point.
 - `schema/core/*.schema.yaml`: generated named operator definitions, mirroring
@@ -139,7 +200,7 @@ spec/                         schema/
     ...                           ...
 ```
 
-The manifest currently enables only `core`. Additional directories can be
+The repository manifest currently enables only its local `core`. Additional directories can be
 enabled explicitly; operator sources are scanned recursively and sorted.
 Duplicate operator keys or `schemaName` values are errors with both source
 paths reported. Each group references the root expression grammar, allowing
@@ -162,6 +223,7 @@ Run `make` or `make help` to list targets:
 | --- | --- |
 | `setup` | Create `.venv` and install the CLI and development dependencies. |
 | `generate` | Generate the expression, shared, and operator JSON Schemas. |
+| `example` | Generate and validate the included core extension example. |
 | `lint` / `lint-openapi` | Validate the hand-written OpenAPI document and external references with [openapi-spec-validator](https://openapi-spec-validator.readthedocs.io/en/stable/cli.html). |
 | `test` | Run all tests, including schema validation and generation freshness. |
 | `check` | Run lint and tests without rewriting generated files. |

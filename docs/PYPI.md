@@ -3,7 +3,7 @@
 **Define JSON expression languages declaratively.**
 
 Gramson compiles composable YAML operator definitions into recursive JSON Schema
-grammars. Its CLI validates JSON or YAML expressions against the bundled grammar,
+grammars. Its CLI generates languages and validates JSON or YAML expressions,
 with readable error locations and no network requests during validation.
 
 ## Install and validate
@@ -41,7 +41,52 @@ representable as JSON: duplicate or non-string keys, non-finite numbers,
 timestamps, and cyclic aliases are rejected. Quote dates to use them as strings.
 
 Exit codes are `0` for valid syntax, `1` for an invalid expression, and `2` for
-input or command usage errors. `python -m gramson validate ...` is also supported.
+input, schema, or command usage errors. `python -m gramson validate ...` is also supported.
+
+## Generate and extend a language
+
+The [ready-to-run extension example](https://github.com/kbck/gramson/tree/main/examples/extension)
+contains manifests, a custom operator, JSON/YAML expressions, and instructions.
+It is also included in the source distribution; run `make setup` and `make example`
+from its repository or source-distribution root.
+
+`gramson generate --output-directory generated` writes the bundled core grammar
+as a self-contained directory. For a custom language, create a manifest:
+
+```yaml
+# my-language/language.yaml
+extends: gramson:core
+operatorDirectories:
+  - custom
+```
+
+Add declarations in `my-language/custom/wrapping.yaml`:
+
+```yaml
+wrap:
+  schemaName: wrapper
+  title: Wrapper
+  summary: Wrap one expression.
+  argumentKind: expression
+  minArgs: 1
+  maxArgs: 1
+```
+
+```sh
+gramson generate --manifest my-language/language.yaml --output-directory generated
+gramson validate expression.yaml --schema generated/expression.schema.yaml
+```
+
+Generated output includes core and custom schemas, shared definitions, and one
+expression entry point; operators can nest across groups. Keep the output
+directory together when moving it. Validation against `--schema` uses those
+files offline and does not depend on the installed core language.
+
+Without `extends`, a manifest defines an independent language using only its
+selected operator directories. `extends: gramson:core` alone selects just core.
+Duplicate operator keys or definition names are errors, and `core/` is reserved
+for inherited groups. Pin the Gramson version for reproducible core inheritance.
+Custom declarations define syntax; they do not implement evaluation.
 
 ## Compatibility and contents
 
@@ -53,8 +98,9 @@ runtime equivalence is not tested.
 
 The wheel includes the generated schemas under `gramson.schemas`, preserving
 relative references for offline use. They can be accessed with
-`importlib.resources.files("gramson.schemas")`. The source distribution also
-contains the declarative specification, generator, tests, and documentation.
+`importlib.resources.files("gramson.schemas")`. Core declarations are bundled
+under `gramson.specs`, and the generator is included in the installed package.
+The source distribution also contains tests and user documentation.
 
 See the [repository and development guide](https://github.com/kbck/gramson#readme),
 [operator specification](https://github.com/kbck/gramson/blob/main/spec/README.md),

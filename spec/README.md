@@ -1,7 +1,7 @@
 # Gramson operator specification
 
 `spec/language.yaml`, the selected operator files, and
-`tools/generate_schema.py` are the authoritative specification for expression
+`gramson/generation.py` are the authoritative specification for expression
 syntax. Core covers all 34 operators in the
 [JSON Logic operations documentation](https://jsonlogic.com/operations.html).
 It also includes the `?:` alias for `if`, giving 35 registered operator keys.
@@ -21,6 +21,27 @@ are loaded, recursively including `.yaml` and `.yml` operator files. Sources are
 sorted by path for deterministic output, independent of manifest directory order.
 Missing or empty directories, repeated directory selections, paths outside the
 specification, and malformed manifests are errors.
+
+Installed Gramson also supports extending its bundled core declarations:
+
+```yaml
+extends: gramson:core
+operatorDirectories:
+  - custom
+```
+
+`extends` accepts only `gramson:core`. Its declarations are loaded from the
+installed package, combined with the selected local files, and compiled into
+one grammar. `operatorDirectories` may be omitted or empty when extending core;
+otherwise it must be a nonempty list. Without `extends`, only local directories
+are included. The repository's own manifest uses local `core` files so edits to
+those declarations are reflected by `make generate`.
+
+Bundled groups are emitted under `core/`; local source directories named `core`
+(including case variants) are reserved when extending core. Use a directory
+such as `custom` instead. Duplicate keys and `schemaName` values remain errors
+across core and local groups, with both source paths reported. Pin the Gramson
+package version to fix the inherited core definitions for reproducible builds.
 
 Core is split into `data.yaml`, `logic.yaml`, `comparison.yaml`,
 `arithmetic.yaml`, `collection.yaml`, `string.yaml`, and `debugging.yaml`.
@@ -147,12 +168,26 @@ Generation uses PyYAML to read the operator sources and write generated schemas 
 YAML. Tests use `jsonschema` and `PyYAML` from requirements-dev.txt; they parse
 schemas before validation and read the hand-written OpenAPI document.
 
-The default manifest is `spec/language.yaml` and the output directory is
-`schema`. Override them when generating a different language profile:
+The repository script defaults to `spec/language.yaml` and output directory
+`schema`. The installed command defaults to the bundled core language and
+output directory `schema`:
 
 ```sh
-.venv/bin/python tools/generate_schema.py --manifest path/to/language.yaml --output-directory path/to/schema
+gramson generate
 ```
+
+Use a manifest to generate a custom or extended language:
+
+```sh
+gramson generate --manifest path/to/language.yaml --output-directory path/to/schema
+gramson validate expression.yaml --schema path/to/schema/expression.schema.yaml
+```
+
+`--schema` selects a local generated entry point. The containing output directory
+must retain the generated relative layout; references stay within that directory,
+and no installed core schema or remote retrieval is used. JSON and YAML entry-point files are supported. Schema-loading
+or unresolved-reference errors exit with code `2`; invalid expressions exit with
+code `1`. Both core and custom operands recurse through the composed entry point.
 
 All sources are loaded and validated before output is written. Freshness tests
 cover every generated file. Generation preserves hand-written files and does
