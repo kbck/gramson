@@ -38,12 +38,13 @@ $defs:
         - type: array
           items:
             $ref: ../expression.schema.yaml#/$defs/expression
-          minItems: 1
+          minItems: 0
     description: 'Identify requested keys that are absent.
 
 
-      Accepts key expressions or a single key-list expression. Validation checks syntax
-      without inspecting evaluation data.'
+      Accepts zero or more key expressions or a single key-list expression. With no
+      arguments, JSON Logic returns an empty list of missing keys. Validation checks
+      syntax without inspecting evaluation data.'
   missingSome:
     title: Minimum key presence
     type: object

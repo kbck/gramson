@@ -1,12 +1,25 @@
 if:
   title: Conditional
   summary: Choose a result using condition/result pairs.
-  description: Accepts an optional final fallback. If no condition matches and no
-    fallback is supplied, the agreed result is null. At least one pair is required;
+  description: Accepts condition/result pairs with an optional final fallback.
+    JSON Logic returns null for no arguments and evaluates a sole argument as
+    the fallback. Non-array shorthand supplies a single fallback expression.
+    If no condition matches and no fallback is supplied, the agreed result is null;
     evaluation is not implemented.
   schemaName: conditional
   argumentKind: expression
-  minArgs: 2
+  minArgs: 0
+  shorthand: true
+'?:':
+  title: Conditional alias
+  summary: 'Use the JSON Logic ?: alias for if.'
+  description: Uses the same syntax rules as if, including no arguments,
+    a single fallback expression, and non-array shorthand;
+    evaluation is not implemented.
+  schemaName: conditionalAlias
+  argumentKind: expression
+  minArgs: 0
+  shorthand: true
 and:
   title: Logical AND
   summary: Combine expressions using the JSON Logic AND form.

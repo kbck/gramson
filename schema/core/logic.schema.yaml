@@ -9,16 +9,42 @@ $defs:
     additionalProperties: false
     properties:
       if:
-        type: array
-        items:
-          $ref: ../expression.schema.yaml#/$defs/expression
-        minItems: 2
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 0
     description: 'Choose a result using condition/result pairs.
 
 
-      Accepts an optional final fallback. If no condition matches and no fallback
-      is supplied, the agreed result is null. At least one pair is required; evaluation
-      is not implemented.'
+      Accepts condition/result pairs with an optional final fallback. JSON Logic returns
+      null for no arguments and evaluates a sole argument as the fallback. Non-array
+      shorthand supplies a single fallback expression. If no condition matches and
+      no fallback is supplied, the agreed result is null; evaluation is not implemented.'
+  conditionalAlias:
+    title: Conditional alias
+    type: object
+    required:
+    - '?:'
+    additionalProperties: false
+    properties:
+      '?:':
+        oneOf:
+        - $ref: ../expression.schema.yaml#/$defs/expression
+          not:
+            type: array
+        - type: array
+          items:
+            $ref: ../expression.schema.yaml#/$defs/expression
+          minItems: 0
+    description: 'Use the JSON Logic ?: alias for if.
+
+
+      Uses the same syntax rules as if, including no arguments, a single fallback
+      expression, and non-array shorthand; evaluation is not implemented.'
   logicalAnd:
     title: Logical AND
     type: object

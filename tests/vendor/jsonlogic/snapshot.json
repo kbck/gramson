@@ -1,0 +1,20 @@
+{
+  "project": "JSON Logic",
+  "repository": "https://github.com/jwadhams/json-logic",
+  "retrieved_on": "2026-11-01",
+  "corpus": {
+    "url": "https://jsonlogic.com/tests.json",
+    "revision": "2964b8da2db6ed04bbd2a0625d6725c6a14c7423",
+    "source": "https://raw.githubusercontent.com/jwadhams/json-logic/2964b8da2db6ed04bbd2a0625d6725c6a14c7423/tests.json",
+    "file": "tests.json",
+    "sha256": "a202b65edda0d7ab687c758b8f10cfe9ba75561cd7166e5650710f88f26303a4",
+    "case_count": 278
+  },
+  "license": {
+    "spdx": "MIT",
+    "revision": "65ea0bdc0abb0ad6e87fe627546ffd11397387ba",
+    "source": "https://raw.githubusercontent.com/jwadhams/json-logic/65ea0bdc0abb0ad6e87fe627546ffd11397387ba/LICENSE",
+    "file": "LICENSE",
+    "sha256": "453a163c949bf67cbed175f93d6a57c11df65086dd8e32ea490179cef4033cdf"
+  }
+}

@@ -10,8 +10,12 @@ Operator groups can be combined, and their expressions can nest across groups.
 
 The included expression language covers the syntax of all 34
 [documented JSON Logic operators](https://jsonlogic.com/operations.html).
+It also supports `?:` as an alias for `if`.
 Gramson currently defines and validates syntax; it does not evaluate expressions
 or implement semantic typing.
+
+The vendored upstream tests retain their MIT license and attribution; see
+[third-party notices](THIRD_PARTY_NOTICES.md).
 
 The [language manifest](spec/language.yaml), operator definitions in
 [spec/core](spec/core), and [generator](tools/generate_schema.py) are the
@@ -38,9 +42,11 @@ semantic typing. For example, `{"+": [true, "2", null]}` and
 evaluation. The profile constrains arities rather than accepting every malformed
 call that a permissive interpreter might process.
 
-`if` accepts condition/result pairs with an optional final fallback. The agreed
+`if` and its `?:` alias accept condition/result pairs with an optional final fallback. The agreed
 runtime result is `null` when no condition matches and no fallback is supplied;
 there is no evaluator yet to execute that rule.
+Empty argument lists are accepted and yield `null` in JSON Logic. A single
+argument is a fallback expression; non-array shorthand is also accepted.
 
 Results are data rather than expressions. The hand-written
 [JSON-value schema](docs/json-value.schema.yaml) accepts scalars, recursive
@@ -63,6 +69,9 @@ operator calls.
 - `examples/valid.json` and `examples/invalid.json`: accepted and rejected
   expressions; only each entry's `expression` is validated.
 - `tests/test_validation.py`: metaschema and example validation.
+- `tests/test_jsonlogic.py`: offline syntax compatibility checks against the
+  pinned upstream [JSON Logic test corpus](tests/vendor/jsonlogic/README.md),
+  with its MIT license, provenance, checksums, and compatibility expectations.
 - `tests/test_generation.py`: generation freshness, operator coverage, arities,
   shorthand, documentation, and registry validation.
 - `tests/test_language.py`: directory selection, deterministic composition,

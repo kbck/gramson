@@ -25,29 +25,6 @@
     "reason": "Object literals remain outside this profile."
   },
   {
-    "name": "if no arguments",
-    "expression": {
-      "if": []
-    },
-    "reason": "At least one condition/result pair is required."
-  },
-  {
-    "name": "if only condition",
-    "expression": {
-      "if": [
-        true
-      ]
-    },
-    "reason": "At least one condition/result pair is required."
-  },
-  {
-    "name": "if scalar",
-    "expression": {
-      "if": true
-    },
-    "reason": "if requires an argument array."
-  },
-  {
     "name": "variable excess arguments",
     "expression": {
       "var": [
@@ -355,5 +332,18 @@
       ]
     },
     "reason": "Comparison needs exactly two arguments."
+  },
+  {
+    "name": "unknown operator inside conditional alias",
+    "expression": {
+      "?:": [
+        true,
+        1,
+        {
+          "unknown": []
+        }
+      ]
+    },
+    "reason": "All conditional alias branches must be valid expressions."
   }
 ]

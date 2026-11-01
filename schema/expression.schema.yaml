@@ -35,6 +35,7 @@ $defs:
     - $ref: core/data.schema.yaml#/$defs/missingSome
     - $ref: core/debugging.schema.yaml#/$defs/log
     - $ref: core/logic.schema.yaml#/$defs/conditional
+    - $ref: core/logic.schema.yaml#/$defs/conditionalAlias
     - $ref: core/logic.schema.yaml#/$defs/logicalAnd
     - $ref: core/logic.schema.yaml#/$defs/logicalOr
     - $ref: core/logic.schema.yaml#/$defs/logicalNot

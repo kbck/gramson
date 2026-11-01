@@ -158,6 +158,12 @@
     }
   },
   {
+    "name": "no requested missing keys",
+    "expression": {
+      "missing": []
+    }
+  },
+  {
     "name": "missing keys",
     "expression": {
       "missing": [
@@ -672,6 +678,173 @@
       "map": [
         true,
         "not a predicate"
+      ]
+    }
+  },
+  {
+    "name": "conditional alias without fallback",
+    "expression": {
+      "?:": [
+        false,
+        "matched"
+      ]
+    }
+  },
+  {
+    "name": "conditional alias with fallback",
+    "expression": {
+      "?:": [
+        true,
+        "yes",
+        "no"
+      ]
+    }
+  },
+  {
+    "name": "conditional alias multiple pairs",
+    "expression": {
+      "?:": [
+        false,
+        "first",
+        true,
+        "second",
+        "fallback"
+      ]
+    }
+  },
+  {
+    "name": "nested conditional aliases",
+    "expression": {
+      "if": [
+        {
+          "?:": [
+            true,
+            {
+              "var": "ready"
+            },
+            false
+          ]
+        },
+        {
+          "?:": [
+            {
+              "var": "flag"
+            },
+            1,
+            0
+          ]
+        },
+        -1
+      ]
+    }
+  },
+  {
+    "name": "if no arguments",
+    "expression": {
+      "if": []
+    }
+  },
+  {
+    "name": "if fallback only",
+    "expression": {
+      "if": [
+        true
+      ]
+    }
+  },
+  {
+    "name": "if scalar",
+    "expression": {
+      "if": true
+    }
+  },
+  {
+    "name": "empty conditional alias",
+    "expression": {
+      "?:": []
+    }
+  },
+  {
+    "name": "fallback-only conditional alias",
+    "expression": {
+      "?:": [
+        "fallback"
+      ]
+    }
+  },
+  {
+    "name": "conditional alias shorthand",
+    "expression": {
+      "?:": true
+    }
+  },
+  {
+    "name": "if null fallback",
+    "expression": {
+      "if": [
+        null
+      ]
+    }
+  },
+  {
+    "name": "if false fallback",
+    "expression": {
+      "if": [
+        false
+      ]
+    }
+  },
+  {
+    "name": "if nested shorthand fallback",
+    "expression": {
+      "if": {
+        "var": "fallback"
+      }
+    }
+  },
+  {
+    "name": "if array fallback",
+    "expression": {
+      "if": [
+        [
+          1,
+          2
+        ]
+      ]
+    }
+  },
+  {
+    "name": "?: null fallback",
+    "expression": {
+      "?:": [
+        null
+      ]
+    }
+  },
+  {
+    "name": "?: false fallback",
+    "expression": {
+      "?:": [
+        false
+      ]
+    }
+  },
+  {
+    "name": "?: nested shorthand fallback",
+    "expression": {
+      "?:": {
+        "var": "fallback"
+      }
+    }
+  },
+  {
+    "name": "?: array fallback",
+    "expression": {
+      "?:": [
+        [
+          1,
+          2
+        ]
       ]
     }
   }

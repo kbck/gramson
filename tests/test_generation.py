@@ -52,10 +52,9 @@ class GenerationTests(unittest.TestCase):
             (("!", "!!", "log"), 1, 1, True),
             (("<", "<=", "substr", "reduce"), 2, 3, False),
             (("-",), 1, 2, True),
-            (("+", "*", "min", "max", "and", "or", "missing"), 1, None, True),
+            (("+", "*", "min", "max", "and", "or"), 1, None, True),
             (("var",), 0, 2, True),
-            (("merge", "cat"), 0, None, True),
-            (("if",), 2, None, False),
+            (("merge", "cat", "missing", "if", "?:"), 0, None, True),
         ]
         tested = set()
         for names, minimum, maximum, shorthand in groups:

@@ -4,6 +4,7 @@
 `tools/generate_schema.py` are the authoritative specification for expression
 syntax. Core covers all 34 operators in the
 [JSON Logic operations documentation](https://jsonlogic.com/operations.html).
+It also includes the `?:` alias for `if`, giving 35 registered operator keys.
 The generated Draft 2020-12 schemas are YAML. Edit the sources and regenerate;
 do not edit generated schemas directly.
 
@@ -87,9 +88,9 @@ describe positional roles, not evaluated-type constraints.
 | Operators | Argument positions / arity | Non-array shorthand |
 | --- | --- | --- |
 | `var` | Zero to two: key, optional default; zero means current context | Yes |
-| `missing` | One or more keys, or one key-list expression | Yes |
+| `missing` | Zero or more keys, or one key-list expression | Yes |
 | `missing_some` | Required count, key-list expression | No |
-| `if` | Two or more: condition/result pairs, optional fallback | No |
+| `if`, `?:` | Zero or more: condition/result pairs, optional fallback | Yes |
 | `and`, `or` | One or more expressions | Yes |
 | `!`, `!!`, `log` | One expression | Yes |
 | `==`, `===`, `!=`, `!==`, `>`, `>=` | Two expressions | No |
@@ -103,12 +104,15 @@ describe positional roles, not evaluated-type constraints.
 | `merge`, `cat` | Zero or more expressions | Yes |
 | `substr` | Source, offset, optional length | No |
 
-`if` accepts both even argument counts (pairs without a fallback) and odd counts
+`if` and its `?:` alias accept both even argument counts (pairs without a fallback) and odd counts
 (pairs followed by a fallback). Every list of at least two expressions has one
 of those shapes, so the registry needs no parity rule. Its agreed runtime rule
 is to return `null` if no condition matches and no fallback is present, as in the
 [JavaScript reference implementation](https://github.com/jwadhams/json-logic-js/blob/master/logic.js).
 Tests validate the branch syntax only; no evaluation is performed.
+Zero arguments are accepted (JSON Logic returns `null`). With one argument,
+that expression is the fallback and is evaluated directly. Non-array shorthand
+also supplies a single fallback expression, including a nested operator call.
 
 Collection bodies and string arguments fit the existing expression-list model.
 There is no need for separate positional type machinery while semantic typing
@@ -119,14 +123,13 @@ for particular positions are actually required.
 
 This is a deliberate syntax profile, not every input accepted by an interpreter:
 
-- `if` requires at least one pair; empty and fallback-only calls are rejected.
-- Arithmetic, logical lists, extrema, and `missing` require the arities above;
+- Arithmetic, logical lists, and extrema require the arities above;
   permissive empty calls, ignored extra arguments, and incomplete binary calls
-  are not generally accepted. `var`, `merge`, and `cat` explicitly allow zero.
+  are not generally accepted. `var`, `missing`, `merge`, `cat`, `if`, and `?:`
+  explicitly allow zero.
 - Arrays are recursive expressions, not opaque JSON data. Unknown operators
   inside arrays, defaults, and branches are rejected even if not evaluated.
-- Arbitrary object literals, implementation aliases such as `?:`, and custom
-  runtime operators are outside this profile.
+- Arbitrary object literals and custom runtime operators are outside this profile.
 - Lookup, truthiness, coercion, equality, collection scope, short-circuiting,
   empty-collection results, and errors are not implemented or tested as runtime
   behavior. `log` is accepted syntax and does not print anything during validation.

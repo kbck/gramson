@@ -11,11 +11,12 @@ var:
 missing:
   title: Missing keys
   summary: Identify requested keys that are absent.
-  description: Accepts key expressions or a single key-list expression. Validation
-    checks syntax without inspecting evaluation data.
+  description: Accepts zero or more key expressions or a single key-list expression.
+    With no arguments, JSON Logic returns an empty list of missing keys.
+    Validation checks syntax without inspecting evaluation data.
   schemaName: missing
   argumentKind: expression
-  minArgs: 1
+  minArgs: 0
   shorthand: true
 missing_some:
   title: Minimum key presence
