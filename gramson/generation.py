@@ -1,21 +1,37 @@
 import posixpath
-import re
+from functools import cache
 from importlib.resources import files
 from pathlib import Path
 from urllib.parse import quote
 
 import yaml
+from jsonschema import Draft202012Validator
 
 BUNDLED_INCLUDES = {
     "gramson:core": Path("core"),
     "gramson:bitwise": Path("extensions/bitwise.yaml"),
 }
-INCLUDE_NAME = re.compile(r"[a-z][a-z0-9_-]*:[a-z][a-z0-9_-]*")
+
+@cache
+def _authoring_validator(name):
+    resource = files("gramson.specs").joinpath("schemas", f"{name}.schema.yaml")
+    schema = read_yaml(resource)
+    Draft202012Validator.check_schema(schema)
+    return Draft202012Validator(schema)
+
+
+def _validate_authoring(value, name, source):
+    error = next(_authoring_validator(name).iter_errors(value), None)
+    if error is not None:
+        pointer = "".join(
+            "/" + str(part).replace("~", "~0").replace("/", "~1")
+            for part in error.absolute_path
+        )
+        raise ValueError(f"{source}#{pointer}: {error.message}") from error
 
 
 def generate_schema(operators):
-    if not isinstance(operators, dict) or not operators:
-        raise ValueError("The registry must be a nonempty object.")
+    _validate_authoring(operators, "operator-spec", "operator specification")
 
     alternatives = [
         {"$ref": "#/$defs/scalarLiteral"},
@@ -29,25 +45,7 @@ def generate_schema(operators):
         },
     }
     for name, definition in operators.items():
-        if not isinstance(name, str) or not name:
-            raise ValueError("Operator names must be nonempty strings.")
-        if not isinstance(definition, dict):
-            raise ValueError(f"{name}: the definition must be an object.")
-        allowed = {
-            "argumentKind", "minArgs", "maxArgs", "shorthand", "schemaName",
-            "title", "summary", "description",
-        }
-        if definition.keys() - allowed:
-            raise ValueError(f"{name}: unsupported definition fields.")
-        for field in ("title", "summary", "description"):
-            if field in definition and (
-                not isinstance(definition[field], str) or not definition[field].strip()
-            ):
-                raise ValueError(f"{name}: {field} must be a nonempty string.")
-
         schema_name = definition.get("schemaName", f"operator_{name}")
-        if not isinstance(schema_name, str) or not schema_name:
-            raise ValueError(f"{name}: schemaName must be a nonempty string.")
         if schema_name in definitions:
             raise ValueError(f"{name}: duplicate or reserved schemaName {schema_name!r}.")
 
@@ -55,18 +53,13 @@ def generate_schema(operators):
         minimum = definition.get("minArgs")
         maximum = definition.get("maxArgs")
         shorthand = definition.get("shorthand", False)
-        if kind not in ("string", "expression"):
-            raise ValueError(f"{name}: argumentKind must be string or expression.")
-        if type(minimum) is not int or minimum < 0:
-            raise ValueError(f"{name}: minArgs must be a nonnegative integer.")
+        # JSON Schema accepts integral floats; preserve integer-only YAML/Python arities.
+        if type(minimum) is not int:
+            raise ValueError(f"{name}: minArgs must be an integer.")
         if "maxArgs" in definition and (
             type(maximum) is not int or maximum < minimum
         ):
             raise ValueError(f"{name}: maxArgs must be an integer >= minArgs.")
-        if type(shorthand) is not bool:
-            raise ValueError(f"{name}: shorthand must be a boolean.")
-        if shorthand and (minimum > 1 or maximum == 0):
-            raise ValueError(f"{name}: shorthand requires an allowed arity of one.")
 
         argument = (
             {"type": "string"}
@@ -121,6 +114,12 @@ def read_yaml(path):
         return yaml.load(stream, Loader=UniqueKeyLoader)
 
 
+def _read_operators(source):
+    definitions = read_yaml(source)
+    _validate_authoring(definitions, "operator-spec", source)
+    return definitions
+
+
 def _load_bundled(name):
     """Load installed declarations with portable output paths."""
     groups = {}
@@ -131,14 +130,14 @@ def _load_bundled(name):
             if source.is_dir():
                 read_directory(source, name)
             elif source.name.endswith((".yaml", ".yml")):
-                groups[name] = read_yaml(source)
+                groups[name] = _read_operators(source)
 
     relative = BUNDLED_INCLUDES[name]
     resource = files("gramson.specs").joinpath(*relative.parts)
     if resource.is_dir():
         read_directory(resource, relative)
     else:
-        groups[relative] = read_yaml(resource)
+        groups[relative] = _read_operators(resource)
     groups = dict(sorted(groups.items()))
     merge_operators(groups)
     return groups
@@ -177,7 +176,7 @@ def _load_external(name, spec_paths):
         if not source.resolve().is_relative_to(directory):
             raise ValueError(f"{source}: operator files must stay inside include {name!r}.")
         relative = Path(namespace) / group_name / source.relative_to(directory)
-        groups[relative] = read_yaml(source)
+        groups[relative] = _read_operators(source)
     return groups
 
 
@@ -212,11 +211,8 @@ def merge_operators(groups):
 def load_language(manifest_path, spec_paths=()):
     manifest_path = Path(manifest_path).resolve()
     manifest = read_yaml(manifest_path)
-    if not isinstance(manifest, dict) or set(manifest) - {"operatorDirectories", "include"}:
-        raise ValueError(f"{manifest_path}: expected include and/or operatorDirectories.")
+    _validate_authoring(manifest, "language-manifest", manifest_path)
     includes = manifest.get("include", [])
-    if not isinstance(includes, list):
-        raise ValueError(f"{manifest_path}: include must be a list of namespace:group names.")
     roots = list(dict.fromkeys(Path(path).resolve() for path in spec_paths))
     for root in roots:
         if not root.is_dir():
@@ -232,13 +228,7 @@ def load_language(manifest_path, spec_paths=()):
             targets[target] = f"{origin} {relative}"
             groups[relative] = definitions
 
-    selected = set()
     for name in includes:
-        if not isinstance(name, str) or not INCLUDE_NAME.fullmatch(name):
-            raise ValueError(f"{manifest_path}: invalid include {name!r}; expected lowercase namespace:group identifiers.")
-        if name in selected:
-            raise ValueError(f"{manifest_path}: repeated include {name!r}.")
-        selected.add(name)
         if name.startswith("gramson:"):
             if name not in BUNDLED_INCLUDES:
                 raise ValueError(f"{manifest_path}: unknown bundled include {name!r}; gramson: is reserved for this package.")
@@ -250,14 +240,10 @@ def load_language(manifest_path, spec_paths=()):
                 raise ValueError(f"{manifest_path}: {error}") from error
             add_groups(additions, f"include {name!r}")
     directories = manifest.get("operatorDirectories", [])
-    if not isinstance(directories, list) or (not directories and not groups):
-        raise ValueError(f"{manifest_path}: operatorDirectories must be a nonempty list unless include selects definitions.")
     source_root = manifest_path.parent
     sources = set()
     seen_directories = set()
     for directory in directories:
-        if not isinstance(directory, str) or not directory.strip():
-            raise ValueError(f"{manifest_path}: directory names must be nonempty strings.")
         relative = Path(directory)
         if relative.is_absolute() or ".." in relative.parts or relative == Path("."):
             raise ValueError(f"{manifest_path}: directories must be relative subdirectories.")
@@ -279,7 +265,7 @@ def load_language(manifest_path, spec_paths=()):
             sources.add(source)
     for source in sorted(sources):
         relative = source.relative_to(source_root)
-        add_groups({relative: read_yaml(source)}, "local")
+        add_groups({relative: _read_operators(source)}, "local")
     groups = dict(sorted(groups.items()))
     merge_operators(groups)
     return groups

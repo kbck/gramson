@@ -1,0 +1,33 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: Gramson language manifest
+description: >-
+  Select bundled or external declaration groups and local operator directories.
+  At least one selection is required. Source availability, path containment,
+  and collisions are checked by the loader. Removal and patching are not yet
+  supported by the manifest format.
+type: object
+additionalProperties: false
+properties:
+  include:
+    type: array
+    uniqueItems: true
+    items:
+      type: string
+      pattern: '^[a-z][a-z0-9_-]*:[a-z][a-z0-9_-]*(?![\s\S])'
+    description: Unique namespace:group names resolved from the package or search paths.
+  operatorDirectories:
+    type: array
+    uniqueItems: true
+    items:
+      type: string
+      pattern: '\S'
+    description: Relative subdirectories of the manifest directory containing operator files.
+anyOf:
+  - required: [include]
+    properties:
+      include:
+        minItems: 1
+  - required: [operatorDirectories]
+    properties:
+      operatorDirectories:
+        minItems: 1

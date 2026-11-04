@@ -107,10 +107,10 @@ class ExternalIncludeTests(unittest.TestCase):
         for name in ("mystuff", "MyStuff:ops", "mystuff:../ops", "mystuff:some/ops", "mystuff:a:b"):
             with self.subTest(name=name):
                 self.write("language.yaml", {"include": [name]})
-                with self.assertRaisesRegex(ValueError, "invalid include"):
+                with self.assertRaisesRegex(ValueError, "language.yaml#/include/0:.*does not match"):
                     self.load()
         self.write("language.yaml", {"include": ["mystuff:myops", "mystuff:myops"]})
-        with self.assertRaisesRegex(ValueError, "repeated include"):
+        with self.assertRaisesRegex(ValueError, "language.yaml#/include:.*non-unique"):
             self.load()
 
     def test_external_and_core_operator_or_definition_names_must_be_unique(self):

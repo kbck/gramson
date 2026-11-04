@@ -1,0 +1,59 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: Gramson operator specification
+description: >-
+  An operator file maps operator keys to syntax definitions. Cross-operator
+  schemaName uniqueness and maxArgs >= minArgs are checked by the generator.
+type: object
+minProperties: 1
+propertyNames:
+  type: string
+  minLength: 1
+additionalProperties:
+  $ref: '#/$defs/operatorDefinition'
+$defs:
+  nonblankString:
+    type: string
+    pattern: '\S'
+  operatorDefinition:
+    type: object
+    additionalProperties: false
+    required: [argumentKind, minArgs]
+    properties:
+      argumentKind:
+        enum: [string, expression]
+        description: Syntax accepted in each argument position, not evaluated types.
+      minArgs:
+        type: integer
+        minimum: 0
+      maxArgs:
+        type: integer
+        minimum: 0
+        description: Omit for an unbounded argument list.
+      shorthand:
+        type: boolean
+        default: false
+        description: Also accept a single unwrapped non-array argument.
+      schemaName:
+        type: string
+        minLength: 1
+        not:
+          enum: [expression, scalarLiteral, arrayExpression]
+        description: Unique definition name; defaults to operator_ plus the operator key.
+      title:
+        $ref: '#/$defs/nonblankString'
+      summary:
+        $ref: '#/$defs/nonblankString'
+      description:
+        $ref: '#/$defs/nonblankString'
+    allOf:
+      - if:
+          required: [shorthand]
+          properties:
+            shorthand:
+              const: true
+        then:
+          properties:
+            minArgs:
+              maximum: 1
+            maxArgs:
+              minimum: 1
