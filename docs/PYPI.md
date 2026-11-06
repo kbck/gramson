@@ -1,58 +1,117 @@
 # Gramson
 
-**Define JSON expression languages declaratively.**
+**Define operators once. Generate the grammar that validates your JSON expressions.**
 
-Gramson compiles composable YAML operator definitions into recursive JSON Schema
-grammars. Its CLI generates languages and validates JSON or YAML expressions,
-with readable error locations and no network requests during validation.
+Gramson compiles YAML operator declarations into recursive JSON Schema grammars.
+Extend the bundled JSON Logic syntax profile with your application's operators,
+or define an independent language. Its Python library and CLI generate schemas
+and validate JSON or YAML expressions; your application supplies evaluation.
 
 ## Install and validate
 
 Requires Python 3.10 or newer. Install in a virtual environment:
 
 ```sh
+python -m venv .venv
+. .venv/bin/activate
 python -m pip install gramson
-gramson validate expression.json
-gramson validate expression.yaml
 ```
 
-For example, `expression.yaml` can contain:
-
-```yaml
-if:
-  - '>':
-      - var: age
-      - 18
-  - adult
-  - minor
-```
-
-Read one expression from stdin:
+Validate a core expression immediately:
 
 ```sh
-printf '%s\n' '{"var":"price"}' | gramson validate -
-printf '%s\n' 'var: price' | gramson validate --format yaml -
+printf '%s\n' '{">=": [{"var": "age"}, 18]}' | gramson validate -
 ```
 
-Files ending in `.yaml` or `.yml` are read as YAML; other files and stdin default
-to JSON. Use `--format json` or `--format yaml` to override detection. Each input
-contains one expression, without an API request envelope. YAML values must be
-representable as JSON: duplicate or non-string keys, non-finite numbers,
-timestamps, and cyclic aliases are rejected. Quote dates to use them as strings.
+For a saved rule, use `gramson validate expression.json` or
+`gramson validate expression.yaml`. Validation checks syntax, without evaluating
+the rule or requiring its input data. Without `--schema`, it uses the bundled
+core grammar.
 
-Exit codes are `0` for valid syntax, `1` for an invalid expression, and `2` for
-input, schema, or command usage errors. `python -m gramson validate ...` is also supported.
+## Extend the language with a host operator
 
-## Generate and extend a language
+Suppose your application stores loan eligibility rules as JSON. An illustrative
+rule requires a credit score of at least 700 and monthly debt payments no greater
+than 35% of gross monthly income.
 
-The [ready-to-run extension example](https://github.com/kbck/gramson/tree/main/examples/extension)
-contains manifests, a custom operator, JSON/YAML expressions, and instructions.
-It is also included in the source distribution; run `make setup` and `make example`
-from its repository or source-distribution root.
-The [bitwise extension](https://github.com/kbck/gramson/tree/main/examples/bitwise)
-adds `&`, `|`, `^`, `~`, `<<`, `>>`, `hexToInt`, and `intToHex`;
-run it with `make example-bitwise`.
-Its reusable declarations are bundled in Gramson and can be selected directly:
+Core operators handle the comparisons and arithmetic. Your application adds
+`creditScore`, which looks up an applicant's score in the host system. Save its
+syntax declaration in `language/custom/credit.yaml`:
+
+```yaml
+creditScore:
+  argumentKind: expression
+  minArgs: 1
+  maxArgs: 1
+```
+
+Save the following rule in `rules/eligibility.json`. It combines `creditScore`
+with core comparisons and arithmetic:
+
+```json
+{
+  "and": [
+    {">=": [{"creditScore": [{"var": "applicant.id"}]}, 700]},
+    {"<=": [
+      {"/": [
+        {"var": "monthlyDebtPayments"},
+        {"var": "grossMonthlyIncome"}
+      ]},
+      0.35
+    ]}
+  ]
+}
+```
+
+The caller supplies the applicant ID, monthly debt payments, and gross monthly
+income. During evaluation, `creditScore` fetches the score from the host system.
+
+**Gramson checks the rule's structure before you save or run it**, catching
+unknown operators, missing arguments, and malformed nested expressions. For
+example, it rejects `{"creditScore": []}` (missing an applicant) and
+`{"creditScore": [{"vra": "applicant.id"}]}` (a misspelled nested operator).
+Add more host operators and regenerate; the validation schema stays in sync.
+
+Your application evaluates the rule, implements the lookup, and handles runtime
+checks such as nonzero income. Gramson generates the grammar.
+
+Create a project folder with this structure. Save the declaration above in
+`language/custom/credit.yaml` and the JSON rule in `rules/eligibility.json`:
+
+```text
+loan-example/
+├── language/
+│   ├── language.yaml
+│   └── custom/
+│       └── credit.yaml
+└── rules/
+    └── eligibility.json
+```
+
+Put this manifest in `language/language.yaml`:
+
+```yaml
+include:
+  - gramson:core
+operatorDirectories:
+  - custom
+```
+
+From inside `loan-example/`, generate the combined grammar, then validate your rule:
+
+```sh
+gramson generate --manifest language/language.yaml --output-directory generated
+gramson validate rules/eligibility.json --schema generated/expression.schema.yaml
+```
+
+The validation command prints `rules/eligibility.json: valid expression`.
+Generated output includes core and custom schemas, shared definitions, and one
+expression entry point. Keep the directory together when moving it; validation
+uses these files offline, without needing the source declarations.
+
+## Compose operator libraries
+
+Select bundled extensions in your manifest:
 
 ```yaml
 include:
@@ -60,11 +119,11 @@ include:
   - gramson:bitwise
 ```
 
-No declaration copying is needed. Add `operatorDirectories` for local groups,
-or include only `gramson:bitwise` to select it without core. Duplicate includes,
-unknown names, and operator, definition-name, or output-path collisions are errors.
+The bundled bitwise group adds `&`, `|`, `^`, `~`, `<<`, `>>`, `hexToInt`, and
+`intToHex`. Add `operatorDirectories` to combine these with local declarations.
+Include only `gramson:bitwise` to select it without core.
 
-User-owned libraries can use their own namespaces:
+For a user-owned library, include its namespace and group:
 
 ```yaml
 include:
@@ -76,52 +135,27 @@ include:
 gramson generate --manifest language.yaml --spec-path ./vendor --output-directory generated
 ```
 
-This reads operator declarations from `vendor/mystuff/myops/` recursively.
-Repeat `--spec-path` for multiple libraries; paths are relative to the command's
-working directory. `gramson:` is reserved for bundled definitions. Unknown or
-ambiguous includes fail, and namespace labels do not prefix operator keys.
-Generated schemas remain self-contained and validate without the source library.
-See the [external library example](https://github.com/kbck/gramson/tree/main/examples/external),
-also runnable with `make example-external` from the source distribution.
+This reads declarations from `vendor/mystuff/myops/` recursively. Repeat
+`--spec-path` for multiple search roots. Generated schemas validate without the
+source library. See the
+[external library example](https://github.com/kbck/gramson/tree/main/examples/external).
 
-`gramson generate --output-directory generated` writes the bundled core grammar
-as a self-contained directory. For a custom language, create a manifest:
+Without `include`, a manifest selects only local directories. Include order gives
+no precedence: duplicate operator keys, definition names, or output paths fail
+generation. Pin the Gramson version for reproducible bundled declarations.
 
-```yaml
-# my-language/language.yaml
-include:
-  - gramson:core
-operatorDirectories:
-  - custom
-```
+## Input formats and exit codes
 
-Add declarations in `my-language/custom/wrapping.yaml`:
+Files ending in `.yaml` or `.yml` are read as YAML; other files and stdin default
+to JSON. Use `--format json` or `--format yaml` to override detection. Each input
+contains one expression, without an API request envelope. YAML values must be
+representable as JSON: duplicate or non-string keys, non-finite numbers,
+timestamps, and cyclic aliases are rejected. Quote dates to use them as strings.
 
-```yaml
-wrap:
-  schemaName: wrapper
-  title: Wrapper
-  summary: Wrap one expression.
-  argumentKind: expression
-  minArgs: 1
-  maxArgs: 1
-```
-
-```sh
-gramson generate --manifest my-language/language.yaml --output-directory generated
-gramson validate expression.yaml --schema generated/expression.schema.yaml
-```
-
-Generated output includes core and custom schemas, shared definitions, and one
-expression entry point; operators can nest across groups. Keep the output
-directory together when moving it. Validation against `--schema` uses those
-files offline and does not depend on the installed core language.
-
-Without `include`, a manifest selects only local directories.
-`include: [gramson:core]` alone selects just core. Include order does not give
-precedence: duplicate operator keys, definition names, or output paths fail the
-whole generation. Pin the Gramson version for reproducible bundled declarations.
-Custom declarations define syntax; they do not implement evaluation.
+Exit codes are `0` for valid syntax, `1` for an invalid expression, and `2` for
+input, schema, or command usage errors. `python -m gramson validate ...` is also
+supported. See the
+[usage guide](https://github.com/kbck/gramson/blob/main/docs/USAGE.md) for details.
 
 ## Compatibility and contents
 
@@ -137,7 +171,7 @@ relative references for offline use. They can be accessed with
 under `gramson.specs`, and the generator is included in the installed package.
 The source distribution also contains tests and user documentation.
 
-See the [repository and development guide](https://github.com/kbck/gramson#readme),
+See the [project overview](https://github.com/kbck/gramson#readme),
 [operator specification](https://github.com/kbck/gramson/blob/main/spec/README.md),
 and [issue tracker](https://github.com/kbck/gramson/issues).
 

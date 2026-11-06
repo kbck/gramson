@@ -24,44 +24,91 @@ not evaluate expressions.
 
 ## Example
 
-Declare an operator that takes exactly one expression:
+Suppose your application stores loan eligibility rules as JSON. An illustrative
+rule requires a credit score of at least 700 and monthly debt payments no greater
+than 35% of gross monthly income.
+
+Core operators handle the comparisons and arithmetic. Your application adds
+`creditScore`, which looks up an applicant's score in the host system. Save its
+syntax declaration in `language/custom/credit.yaml`:
 
 ```yaml
-wrap:
+creditScore:
   argumentKind: expression
   minArgs: 1
   maxArgs: 1
 ```
 
-Combine it with the bundled core language, and the generated schema accepts:
+Save the following rule in `rules/eligibility.json`. It combines `creditScore`
+with core comparisons and arithmetic:
 
 ```json
-{"wrap": [{"+": [1, 2]}]}
+{
+  "and": [
+    {">=": [{"creditScore": [{"var": "applicant.id"}]}, 700]},
+    {"<=": [
+      {"/": [
+        {"var": "monthlyDebtPayments"},
+        {"var": "grossMonthlyIncome"}
+      ]},
+      0.35
+    ]}
+  ]
+}
 ```
 
-It rejects `{"wrap": [1, 2]}` because `wrap` takes one argument. Recursive
-references let your operators nest inside core operators, and vice versa.
+The caller supplies the applicant ID, monthly debt payments, and gross monthly
+income. During evaluation, `creditScore` fetches the score from the host system.
+
+**Gramson checks the rule's structure before you save or run it**, catching
+unknown operators, missing arguments, and malformed nested expressions. For
+example, it rejects `{"creditScore": []}` (missing an applicant) and
+`{"creditScore": [{"vra": "applicant.id"}]}` (a misspelled nested operator).
+Add more host operators and regenerate; the validation schema stays in sync.
+
+Your application evaluates the rule, implements the lookup, and handles runtime
+checks such as nonzero income. Gramson generates the grammar.
 
 ## Try it
 
-Requires Python 3.10 or newer. From a checkout:
+Requires Python 3.10 or newer. Install in a virtual environment:
 
 ```sh
-make setup
-make example
-```
-
-This installs the CLI, generates a language with `wrap`, and validates the
-included JSON and YAML expressions. The [complete example](examples/extension/README.md)
-contains the manifest, declarations, and expressions ready to edit.
-
-For your own files, the workflow is:
-
-```sh
+python -m venv .venv
 . .venv/bin/activate
-gramson generate --manifest language.yaml --output-directory generated
-gramson validate expression.yaml --schema generated/expression.schema.yaml
+python -m pip install gramson
 ```
+
+Create a project folder with this structure. Save the declaration above in
+`language/custom/credit.yaml` and the JSON rule in `rules/eligibility.json`:
+
+```text
+loan-example/
+├── language/
+│   ├── language.yaml
+│   └── custom/
+│       └── credit.yaml
+└── rules/
+    └── eligibility.json
+```
+
+Put this manifest in `language/language.yaml`:
+
+```yaml
+include:
+  - gramson:core
+operatorDirectories:
+  - custom
+```
+
+From inside `loan-example/`, generate the combined grammar, then validate your rule:
+
+```sh
+gramson generate --manifest language/language.yaml --output-directory generated
+gramson validate rules/eligibility.json --schema generated/expression.schema.yaml
+```
+
+The validation command prints `rules/eligibility.json: valid expression`.
 
 Generated output is self-contained and validates offline. Without `--schema`,
 validation uses the bundled core grammar. See the [usage guide](docs/USAGE.md)
@@ -84,9 +131,9 @@ operatorDirectories:
   Structural rules are stricter than the reference interpreter; runtime
   equivalence is untested.
 - **Bitwise:** six bitwise operators plus `hexToInt` and `intToHex` conversion
-  forms. Try `make example-bitwise`.
+  forms. See the [bitwise example](examples/bitwise/README.md).
 - **Your libraries:** include names such as `mystuff:myops` with explicit
-  `--spec-path` search roots. Try `make example-external`.
+  `--spec-path` search roots. See the [external library example](examples/external/README.md).
 
 Include order gives no precedence: duplicate operator keys, definition names,
 or output paths fail generation. The [specification guide](spec/README.md)
