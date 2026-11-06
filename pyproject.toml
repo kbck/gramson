@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gramson"
-version = "0.1.1.dev0"
+version = "0.1.1"
 description = "Define JSON expression languages declaratively"
 readme = "docs/PYPI.md"
 requires-python = ">=3.10"
