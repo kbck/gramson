@@ -10,6 +10,20 @@ do not edit generated schemas directly.
 
 ## Directories and manifest
 
+Hand-maintained Draft 2020-12 schemas for authoring are in
+[`schemas/language-manifest.schema.yaml`](schemas/language-manifest.schema.yaml)
+and [`schemas/operator-spec.schema.yaml`](schemas/operator-spec.schema.yaml).
+The loader validates each manifest and operator file against these schemas
+immediately after parsing YAML, reporting the source and JSON Pointer of invalid
+fields. Editors can use the same schemas. The public `generate_schema()` function
+also validates operator definitions supplied directly by Python callers.
+The loader additionally checks
+source availability, path containment, duplicate YAML keys, operator and
+definition-name collisions, and relationships such as `maxArgs >= minArgs`.
+The authoring schemas are separate from the generated expression schemas in
+`schema/`; `spec/schemas/` is not an operator directory and should not be selected
+in a manifest.
+
 ```yaml
 # spec/language.yaml
 operatorDirectories:
